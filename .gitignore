@@ -26,3 +26,9 @@ Makefile*
 # QtCreator
 
 *.autosave
+*.qmlproject.user
+*.qmlproject.user.
+
+#ROS + QtCreator
+CMakeLists.txt.user
+build/
