@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 2.4.6)
 
 project(robot_maps)
 
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs ras_utils)
 
 catkin_package(
 	CATKIN_DEPENDS roscpp std_msgs
