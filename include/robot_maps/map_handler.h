@@ -138,10 +138,12 @@ private:
 
             };
 
-        double sensor_reading_x_pos_ = getSensorReadingPos(robot_x_pos_, [](double angle){ return cos(angle);});
-        double sensor_reading_y_pos_ = getSensorReadingPos(robot_y_pos_, [](double angle){ return sin(angle);});
+        double sensor_reading_x_pos = getSensorReadingPos(robot_x_pos_, [](double angle){ return cos(angle);});
+        double sensor_reading_y_pos = getSensorReadingPos(robot_y_pos_, [](double angle){ return sin(angle);});
 
-        map.setBlocked(sensor_reading_x_pos_, sensor_reading_y_pos_);
+        RAS_Utils::print({"sensor_angle", "sensor_distance_center_offset", "sensor_angle_center_offset", "sensor_reading_distance", "max_distance", "sensor_reading_x_pos", "sensor_reading_y_pos"}, {sensor_angle, sensor_distance_center_offset, sensor_angle_center_offset, sensor_reading_distance, max_distance, sensor_reading_x_pos, sensor_reading_y_pos});
+
+        map.setBlocked(sensor_reading_x_pos, sensor_reading_y_pos);
     }
 };
 
