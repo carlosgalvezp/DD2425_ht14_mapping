@@ -20,6 +20,8 @@
 #define LONG_SENSOR_DISTANCE_FROM_CENTER        1.75
 #define LONG_FRONT_SENSOR_ANGLE_FROM_FORWARD    0       //TODO: Not entirely true...
 
+#define METRIC_CONVERTER    100.0 // To convert meters from odometry to cm in map (might redo this)
+
 class MapHandler {
 public:
 
@@ -36,8 +38,8 @@ public:
     void update(const geometry_msgs::Pose2D::ConstPtr &odo_data, const ras_arduino_msgs::ADConverter::ConstPtr &adc_data)
     {
         // Retrieve the data
-        robot_x_pos_ = odo_data->x + robot_x_pos_offset_;
-        robot_y_pos_ = odo_data->y + robot_y_pos_offset_;
+        robot_x_pos_ = odo_data->x * METRIC_CONVERTER + robot_x_pos_offset_;
+        robot_y_pos_ = odo_data->y * METRIC_CONVERTER + robot_y_pos_offset_;
 
         double dist_front_large_range = RAS_Utils::longSensorToDistanceInCM(adc_data->ch8);
         double dist_back_large_range = RAS_Utils::longSensorToDistanceInCM(adc_data->ch7);  //TODO Check if it is really ch7
