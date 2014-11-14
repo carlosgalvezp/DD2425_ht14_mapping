@@ -11,7 +11,6 @@
 
 #include <math.h>
 
-
 #define MAX_SHORT_SENSOR_DISTANCE   30
 #define MAX_LONG_SENSOR_DISTANCE    80
 
@@ -24,15 +23,21 @@
 class MapHandler {
 public:
 
-    MapHandler(Map map) : map(map)
+    MapHandler(Map map) :
+        map(map),
+        robot_angle_(0),
+        robot_x_pos_(0),
+        robot_y_pos_(0),
+        robot_x_pos_offset_(map.getWidth() / 2),
+        robot_y_pos_offset_(map.getHeight() / 2)
     {
     }
 
     void update(const geometry_msgs::Pose2D::ConstPtr &odo_data, const ras_arduino_msgs::ADConverter::ConstPtr &adc_data)
     {
         // Retrieve the data
-        robot_x_pos_ = odo_data->x;
-        robot_y_pos_ = odo_data->y;
+        robot_x_pos_ = odo_data->x + robot_x_pos_offset_;
+        robot_y_pos_ = odo_data->y + robot_y_pos_offset_;
 
         double dist_front_large_range = RAS_Utils::longSensorToDistanceInCM(adc_data->ch8);
         double dist_back_large_range = RAS_Utils::longSensorToDistanceInCM(adc_data->ch7);  //TODO Check if it is really ch7
@@ -81,6 +86,9 @@ private:
     double robot_angle_;
     double robot_x_pos_;
     double robot_y_pos_;
+
+    double robot_x_pos_offset_;
+    double robot_y_pos_offset_;
 
     typedef std::vector< std::vector<Cell> > CellMatrix;
     typedef std::vector<Cell> CellVector;

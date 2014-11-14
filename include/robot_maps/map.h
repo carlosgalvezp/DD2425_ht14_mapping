@@ -92,6 +92,12 @@ private:
 
     void setCell(Cell cell, int8_t simple_value)
     {
+        if(cell.getI() < 0 || cell.getI() >= getWidth() || cell.getJ() < 0 || cell.getJ() > getHeight())
+        {
+            ROS_ERROR(" *** Trying to set cell outside of bounds! Check code!!! ***");
+            ROS_ERROR("X = %i : Y = %i", cell.getI(), cell.getJ());
+            return;
+        }
         simple_map_vector_[cell.getI() + getWidth() * cell.getJ()] = simple_value;
         map_matrix_[cell.getI()][cell.getJ()] = cell;
     }
