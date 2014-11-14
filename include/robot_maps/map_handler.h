@@ -50,8 +50,8 @@ public:
         double d_left_back   = RAS_Utils::shortSensorToDistanceInCM(adc_data->ch2);
 
         // Update where we detect walls based on sensor readings
-        updateOccupiedAreaLongSensor(dist_front_large_range, true);
-        updateOccupiedAreaLongSensor(dist_back_large_range, false);
+       // updateOccupiedAreaLongSensor(dist_front_large_range, true);
+       // updateOccupiedAreaLongSensor(dist_back_large_range, false);
 
         updateOccupiedAreaShortSensor(d_right_front, true, true);
         updateOccupiedAreaShortSensor(d_right_back, true, false);
