@@ -11,6 +11,7 @@ public:
         UNKNOWN, FREE, BLOCKED
     };
 
+    Cell(){}
 
     Cell(int i, int j, Type cellValue) : i(i), j(j), type(cellValue){}
 

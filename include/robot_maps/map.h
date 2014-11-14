@@ -17,7 +17,8 @@ public:
         height_(height),
         width_(width),
         cell_size_(cell_size),
-        simple_map_vector_(height*width, SIMPLE_UNKNOWN_AREA)
+        simple_map_vector_(height*width, SIMPLE_UNKNOWN_AREA),
+        map_matrix_(width, CellVector(height))
 
     {
         for(int i = 0; i < width; i++)

@@ -50,7 +50,6 @@ public:
         updateOccupiedAreaShortSensor(d_right_back, true, false);
         updateOccupiedAreaShortSensor(d_left_front, false, true);
         updateOccupiedAreaShortSensor(d_left_back, false, false);
-
     }
 
     std::vector<int8_t> & getMap() {
