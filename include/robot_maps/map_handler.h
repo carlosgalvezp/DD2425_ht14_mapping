@@ -134,7 +134,7 @@ private:
 
             double sensor_reading_pos_offset = cosSinFunction(sensor_angle + robot_angle_) * sensor_reading_distance;
 
-            return sensor_pos_offset + sensor_reading_pos_offset;
+            return robot_pos_ + sensor_pos_offset + sensor_reading_pos_offset;
 
             };
 
