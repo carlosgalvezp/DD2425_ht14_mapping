@@ -12,7 +12,7 @@ public:
     };
 
 
-    Cell(int x, int y, Type cellValue) : x(x), y(y), type(cellValue){}
+    Cell(int i, int j, Type cellValue) : i(i), j(j), type(cellValue){}
 
     virtual bool isObject() {
         return false;
@@ -42,26 +42,26 @@ public:
         return type == UNKNOWN;
     }
 
-    int getX()
+    int getI()
     {
-        return x;
+        return i;
     }
 
-    int getY()
+    int getJ()
     {
-        return y;
+        return j;
     }
 
 private:
     Type type;
-    int x;
-    int y;
+    int i;
+    int j;
 };
 
 
 class ObjectCell : public Cell {
 public:
-    ObjectCell(int x, int y, std::string object_name) : Cell(x, y, Cell::BLOCKED), object_name_(object_name) {}
+    ObjectCell(int i, int j, std::string object_name) : Cell(j, j, Cell::BLOCKED), object_name_(object_name) {}
 
     bool isObject() {
         return true;

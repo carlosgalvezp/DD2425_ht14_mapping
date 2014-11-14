@@ -15,11 +15,11 @@
 #define MAX_SHORT_SENSOR_DISTANCE   30
 #define MAX_LONG_SENSOR_DISTANCE    80
 
-#define SHORT_SENSOR_DISTANCE_FROM_CENTER   10.68
-#define SHORT_SENSOR_ANGLE_FROM_FORWARD
+#define SHORT_SENSOR_DISTANCE_FROM_CENTER           10.68
+#define SHORT_RIGHT_FRONT_SENSOR_ANGLE_FROM_FORWARD 0.53839
 
-#define LONG_SENSOR_DISTANCE_FROM_CENTER
-#define LONG_SENSOR_ANGLE_FROM_FORWARD
+#define LONG_SENSOR_DISTANCE_FROM_CENTER        1.75
+#define LONG_FRONT_SENSOR_ANGLE_FROM_FORWARD    0       //TODO: Not entirely true...
 
 class MapHandler {
 public:
@@ -34,15 +34,22 @@ public:
         robot_x_pos_ = odo_data->x;
         robot_y_pos_ = odo_data->y;
 
-        double dist_front_large_range = RAS_Utils::longSensorToDistanceInCM(adc_data->ch7); //TODO Check if it is really ch7
-        double dist_back_large_range = RAS_Utils::longSensorToDistanceInCM(adc_data->ch8);
+        double dist_front_large_range = RAS_Utils::longSensorToDistanceInCM(adc_data->ch8);
+        double dist_back_large_range = RAS_Utils::longSensorToDistanceInCM(adc_data->ch7);  //TODO Check if it is really ch7
 
         double d_right_front = RAS_Utils::shortSensorToDistanceInCM(adc_data->ch4);
         double d_right_back  = RAS_Utils::shortSensorToDistanceInCM(adc_data->ch3);
         double d_left_front  = RAS_Utils::shortSensorToDistanceInCM(adc_data->ch1);
         double d_left_back   = RAS_Utils::shortSensorToDistanceInCM(adc_data->ch2);
 
-        //updateOccupiedArea(d_right_front);
+        // Update where we detect walls based on sensor readings
+        updateOccupiedAreaLongSensor(dist_front_large_range, true);
+        updateOccupiedAreaLongSensor(dist_back_large_range, false);
+
+        updateOccupiedAreaShortSensor(d_right_front, true, true);
+        updateOccupiedAreaShortSensor(d_right_back, true, false);
+        updateOccupiedAreaShortSensor(d_left_front, false, true);
+        updateOccupiedAreaShortSensor(d_left_back, false, false);
 
     }
 
@@ -60,7 +67,7 @@ public:
         return map.getWidth();
     }
 
-    int getCellSize()
+    double getCellSize()
     {
         return map.getCellSize();
     }
@@ -79,13 +86,33 @@ private:
     typedef std::vector< std::vector<Cell> > CellMatrix;
     typedef std::vector<Cell> CellVector;
 
-    void updateOccupiedArea(double sensor_distance,                 // The distance that the sensor show
+    void updateOccupiedAreaLongSensor(double sensor_reading_distance, bool front)
+    {
+        double sensor_angle = (front) ? 0 : M_PI;
+        double sensor_angle_center_offset = (front) ? LONG_FRONT_SENSOR_ANGLE_FROM_FORWARD : M_PI + LONG_FRONT_SENSOR_ANGLE_FROM_FORWARD;
+
+        updateOccupiedArea(sensor_reading_distance, sensor_angle, MAX_LONG_SENSOR_DISTANCE, LONG_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset);
+    }
+
+    void updateOccupiedAreaShortSensor(double sensor_reading_distance, bool right_side, bool front)
+    {
+        double sensor_angle = (right_side) ? M_PI / 2.0 : (3*M_PI/2);
+
+        double sensor_angle_center_offset = (front) ? SHORT_RIGHT_FRONT_SENSOR_ANGLE_FROM_FORWARD : M_PI - SHORT_RIGHT_FRONT_SENSOR_ANGLE_FROM_FORWARD;
+        sensor_angle_center_offset *= (right_side) ? 1 : -1;
+
+        updateOccupiedArea(sensor_reading_distance, sensor_angle, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset);
+    }
+    /*
+        Given the sensor reading, will update a wall cell unless max_distance > sensor_reading_distance
+    */
+    void updateOccupiedArea(double sensor_reading_distance,         // The distance that the sensor show
                             double sensor_angle,                    // The angle in respect to the robot that the sensor points towards
                             double max_distance,                    // The max distance that the sensor can give acceptable readings
                             double sensor_distance_center_offset,   // The distance the sensor is away from the robot center
                             double sensor_angle_center_offset)      // The angle in respect to the robot that the sensor is positioned
     {
-        if(sensor_distance > max_distance)
+        if(sensor_reading_distance > max_distance)
         {
             // We can not trust the information, to far away reading
             return;
@@ -93,22 +120,21 @@ private:
 
         typedef std::function<double (double)> CosSinFunction;
 
-        std::function<double (double, CosSinFunction)> getSensorReadingPosOffset = [robot_angle_, sensor_angle_center_offset, sensor_distance_center_offset, sensor_angle, sensor_distance]
+        std::function<double (double, CosSinFunction)> getSensorReadingPos = [robot_angle_, sensor_angle_center_offset, sensor_distance_center_offset, sensor_angle, sensor_reading_distance]
                 (double robot_pos_, CosSinFunction cosSinFunction)
             {
             double sensor_pos_offset = cosSinFunction(sensor_angle_center_offset + robot_angle_) * sensor_distance_center_offset;
 
-            double sensor_reading_pos_offset = cosSinFunction(sensor_angle + robot_angle_) * sensor_distance;
+            double sensor_reading_pos_offset = cosSinFunction(sensor_angle + robot_angle_) * sensor_reading_distance;
 
             return sensor_pos_offset + sensor_reading_pos_offset;
 
             };
 
-        double sensor_reading_x_pos_ = getSensorReadingPosOffset(robot_x_pos_, [](double angle){ return cos(angle);});
-        double sensor_reading_y_pos_ = getSensorReadingPosOffset(robot_y_pos_, [](double angle){ return sin(angle);});
+        double sensor_reading_x_pos_ = getSensorReadingPos(robot_x_pos_, [](double angle){ return cos(angle);});
+        double sensor_reading_y_pos_ = getSensorReadingPos(robot_y_pos_, [](double angle){ return sin(angle);});
 
-        // TODO: finnish this function
-
+        map.setBlocked(sensor_reading_x_pos_, sensor_reading_y_pos_);
     }
 };
 

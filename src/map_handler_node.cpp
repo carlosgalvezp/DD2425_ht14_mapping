@@ -43,7 +43,7 @@ public:
                     msg.data = (&mapHandler.getMap())[0];
                     msg.info.height = mapHandler.getHeight();
                     msg.info.width = mapHandler.getWidth();
-                    msg.info.resolution = mapHandler.getCellSize();
+                    msg.info.resolution = mapHandler.getCellSize() / 100;
                     map_pub_.publish(msg);
                 }
             }

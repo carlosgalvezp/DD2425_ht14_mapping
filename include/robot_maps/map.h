@@ -29,24 +29,28 @@ public:
         }
     }
 
-    void setBlocked(int x, int y) {
-        setCellSimpleVector(x, y, SIMPLE_BLOCKED_AREA);
-        setCell(Cell(x, y, Cell::BLOCKED));
+    void setBlocked(double x, double y) {
+        int i, j;
+        convertToIndexValue(x, y, i, j);
+        setCell(Cell(i, j, Cell::BLOCKED), SIMPLE_BLOCKED_AREA);
     }
 
-    void setFree(int x, int y) {
-        setCellSimpleVector(x, y, SIMPLE_FREE_AREA);
-        setCell(Cell(x, y, Cell::FREE));
+    void setFree(double x, double y) {
+        int i, j;
+        convertToIndexValue(x, y, i, j);
+        setCell(Cell(i, j, Cell::FREE), SIMPLE_FREE_AREA);
     }
 
-    void setUnknown(int x, int y) {
-        setCellSimpleVector(x, y, SIMPLE_UNKNOWN_AREA);
-        setCell(Cell(x, y, Cell::UNKNOWN));
+    void setUnknown(double x, double y) {
+        int i, j;
+        convertToIndexValue(x, y, i, j);
+        setCell(Cell(i, j, Cell::UNKNOWN), SIMPLE_UNKNOWN_AREA);
     }
 
-    void setObject(int x, int y, std::string object_name) {
-        setCellSimpleVector(x, y, SIMPLE_BLOCKED_AREA);
-        setCell(ObjectCell(x, y, object_name));
+    void setObject(double x, double y, std::string object_name) {
+        int i, j;
+        convertToIndexValue(x, y, i, j);
+        setCell(ObjectCell(i, j, object_name), SIMPLE_BLOCKED_AREA);
     }
 
     std::vector<int8_t> & getSimpleMapVector() {
@@ -68,7 +72,7 @@ public:
         return width_;
     }
 
-    int getCellSize()
+    double getCellSize()
     {
         return cell_size_;
     }
@@ -79,20 +83,22 @@ private:
 
     int height_;
     int width_;
-    int cell_size_;
+    double cell_size_;
 
     std::vector<int8_t> simple_map_vector_;
 
     CellMatrix map_matrix_;
 
-    void setCellSimpleVector(int x, int y, int8_t value)
+    void setCell(Cell cell, int8_t simple_value)
     {
-        simple_map_vector_[x + width_*y] = value;
+        simple_map_vector_[cell.getI() + getWidth() * cell.getJ()] = simple_value;
+        map_matrix_[cell.getI()][cell.getJ()] = cell;
     }
 
-    void setCell(Cell cell)
+    void convertToIndexValue(double x, double y, int &i, int &j)
     {
-        map_matrix_[cell.getX()][cell.getY()] = cell;
+        i = (x/getCellSize()) + 0.5;
+        j = (y/getCellSize()) + 0.5;
     }
 
 
