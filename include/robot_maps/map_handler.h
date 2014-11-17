@@ -44,7 +44,7 @@ public:
         // Retrieve the data
         robot_x_pos_ = odo_data->x * METRIC_CONVERTER + robot_x_pos_offset_;
         robot_y_pos_ = odo_data->y * METRIC_CONVERTER + robot_y_pos_offset_;
-        robot_angle_ = odo_data->theta;
+        robot_angle_ = - odo_data->theta;
 
         double dist_front_large_range = RAS_Utils::longSensorToDistanceInCM(adc_data->ch8);
         double dist_back_large_range = RAS_Utils::longSensorToDistanceInCM(adc_data->ch7);  //TODO Check if it is really ch7
