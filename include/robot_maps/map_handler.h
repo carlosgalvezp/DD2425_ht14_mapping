@@ -10,6 +10,8 @@
 #include <robot_maps/map.h>
 
 #include <math.h>
+#include <vector>
+#include <string>
 
 #define MAX_SHORT_SENSOR_DISTANCE   30
 #define MAX_LONG_SENSOR_DISTANCE    80
@@ -37,6 +39,8 @@ public:
 
     void update(const geometry_msgs::Pose2D::ConstPtr &odo_data, const ras_arduino_msgs::ADConverter::ConstPtr &adc_data)
     {
+        ROS_INFO("[ROBOT_MAPS");
+
         // Retrieve the data
         robot_x_pos_ = odo_data->x * METRIC_CONVERTER + robot_x_pos_offset_;
         robot_y_pos_ = odo_data->y * METRIC_CONVERTER + robot_y_pos_offset_;
@@ -57,6 +61,11 @@ public:
       //  updateOccupiedAreaShortSensor(d_right_back, true, false);
       //  updateOccupiedAreaShortSensor(d_left_front, false, true);
       //  updateOccupiedAreaShortSensor(d_left_back, false, false);
+
+        std::vector<std::string> names = {"robot_x_pos", "robot_y_pos", "robot_angle"};
+        std::vector<double> values = {robot_x_pos_, robot_y_pos_, robot_angle_};
+        RAS_Utils::print(names, values);
+
     }
 
     std::vector<int8_t> & getMap() {
@@ -143,7 +152,10 @@ private:
         double sensor_reading_x_pos = getSensorReadingPos(robot_x_pos_, [](double angle){ return cos(angle);});
         double sensor_reading_y_pos = getSensorReadingPos(robot_y_pos_, [](double angle){ return sin(angle);});
 
-        RAS_Utils::print({"sensor_angle", "sensor_distance_center_offset", "sensor_angle_center_offset", "sensor_reading_distance", "max_distance", "sensor_reading_x_pos", "sensor_reading_y_pos"}, {sensor_angle, sensor_distance_center_offset, sensor_angle_center_offset, sensor_reading_distance, max_distance, sensor_reading_x_pos, sensor_reading_y_pos});
+        std::vector<std::string> names = {"sensor_angle", "sensor_distance_center_offset", "sensor_angle_center_offset", "sensor_reading_distance", "max_distance", "sensor_reading_x_pos", "sensor_reading_y_pos"};
+        std::vector<double> values = {sensor_angle, sensor_distance_center_offset, sensor_angle_center_offset, sensor_reading_distance, max_distance, sensor_reading_x_pos, sensor_reading_y_pos};
+        RAS_Utils::print(names, values);
+        RAS_Utils::print(names, values);
 
         map.setBlocked(sensor_reading_x_pos, sensor_reading_y_pos);
     }
