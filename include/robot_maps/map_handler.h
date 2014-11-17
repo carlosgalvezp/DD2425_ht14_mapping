@@ -59,9 +59,9 @@ public:
        // updateOccupiedAreaLongSensor(dist_back_large_range, false);
 
         updateOccupiedAreaShortSensor(d_right_front, true, true);
-      //  updateOccupiedAreaShortSensor(d_right_back, true, false);
-      //  updateOccupiedAreaShortSensor(d_left_front, false, true);
-      //  updateOccupiedAreaShortSensor(d_left_back, false, false);
+        updateOccupiedAreaShortSensor(d_right_back, true, false);
+        updateOccupiedAreaShortSensor(d_left_front, false, true);
+        updateOccupiedAreaShortSensor(d_left_back, false, false);
 
         std::vector<std::string> names = {"robot_x_pos", "robot_y_pos", "robot_angle"};
         std::vector<double> values = {robot_x_pos_, robot_y_pos_, robot_angle_};
