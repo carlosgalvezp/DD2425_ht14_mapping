@@ -139,23 +139,22 @@ private:
 
         typedef std::function<double (double)> CosSinFunction;
 
-        std::function<double (double, CosSinFunction)> getSensorReadingPos = [robot_angle_, sensor_angle_center_offset, sensor_distance_center_offset, sensor_angle, sensor_reading_distance]
-                (double robot_pos_, CosSinFunction cosSinFunction)
+        std::function<double (CosSinFunction)> getSensorReadingPosOffset = [robot_angle_, sensor_angle_center_offset, sensor_distance_center_offset, sensor_angle, sensor_reading_distance]
+                (CosSinFunction cosSinFunction)
             {
             double sensor_pos_offset = cosSinFunction(sensor_angle_center_offset + robot_angle_) * sensor_distance_center_offset;
 
             double sensor_reading_pos_offset = cosSinFunction(sensor_angle + robot_angle_) * sensor_reading_distance;
 
-            return robot_pos_ + sensor_pos_offset + sensor_reading_pos_offset;
+            return sensor_pos_offset + sensor_reading_pos_offset;
 
             };
 
-        double sensor_reading_x_pos = getSensorReadingPos(robot_x_pos_, [](double angle){ return cos(angle);});
-        double sensor_reading_y_pos = getSensorReadingPos(robot_y_pos_, [](double angle){ return sin(angle);});
+        double sensor_reading_x_pos = robot_x_pos_ + getSensorReadingPosOffset([](double angle){ return cos(angle);});
+        double sensor_reading_y_pos = robot_y_pos_ - getSensorReadingPosOffset([](double angle){ return sin(angle);});
 
         std::vector<std::string> names = {"sensor_angle", "sensor_distance_center_offset", "sensor_angle_center_offset", "sensor_reading_distance", "max_distance", "sensor_reading_x_pos", "sensor_reading_y_pos"};
         std::vector<double> values = {sensor_angle, sensor_distance_center_offset, sensor_angle_center_offset, sensor_reading_distance, max_distance, sensor_reading_x_pos, sensor_reading_y_pos};
-        RAS_Utils::print(names, values);
         RAS_Utils::print(names, values);
 
         map.setBlocked(sensor_reading_x_pos, sensor_reading_y_pos);
