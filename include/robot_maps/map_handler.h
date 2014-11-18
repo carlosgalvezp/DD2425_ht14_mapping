@@ -67,6 +67,8 @@ public:
 
         updateFreeAreaUsingRobotPos();
 
+        //updateFreeAreaShortSensor(d_right_front, true, true);
+
         std::vector<std::string> names = {"robot_x_pos", "robot_y_pos", "robot_angle"};
         std::vector<double> values = {robot_x_pos_, robot_y_pos_, robot_angle_};
         RAS_Utils::print(names, values);
@@ -161,16 +163,25 @@ private:
         std::vector<double> values = {sensor_angle, sensor_distance_center_offset, sensor_angle_center_offset, sensor_reading_distance, max_distance, sensor_reading_x_pos, sensor_reading_y_pos};
         RAS_Utils::print(names, values);
 
-        map.setBlocked(sensor_reading_x_pos, sensor_reading_y_pos);
+        if(map.getCell(sensor_reading_x_pos, sensor_reading_y_pos).isUnknown()) {
+            map.setBlocked(sensor_reading_x_pos, sensor_reading_y_pos);
+        }
     }
 
-        void updateFreeAreaUsingRobotPos() {
-            for(int x = -FREE_AREA_LIMIT; x <= FREE_AREA_LIMIT; x++) {
-                for(int y = -FREE_AREA_LIMIT; y <= FREE_AREA_LIMIT; y++) {
+    void updateFreeAreaUsingRobotPos() {
+        double x_pos, y_pos;
+        for(int x = -FREE_AREA_LIMIT; x <= FREE_AREA_LIMIT; x++) {
+            for(int y = -FREE_AREA_LIMIT; y <= FREE_AREA_LIMIT; y++) {
+                x_pos = robot_x_pos_ + x;
+                y_pos = robot_y_pos_ + y;
+                if(map.getCell(x_pos, y_pos).isUnknown()) {
                     map.setFree(robot_x_pos_ + x, robot_y_pos_ + y);
                 }
             }
         }
+    }
+
+
 };
 
 

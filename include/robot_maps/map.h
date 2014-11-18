@@ -30,6 +30,12 @@ public:
         }
     }
 
+    Cell & getCell(double x, double y) {
+        int i, j;
+        convertToIndexValue(x, y, i, j);
+        return getMapMatrix()[i][j];
+    }
+
     void setBlocked(double x, double y) {
         int i, j;
         convertToIndexValue(x, y, i, j);
@@ -58,7 +64,7 @@ public:
         return simple_map_vector_;
     }
 
-    const CellMatrix & getMapMatrix()
+    CellMatrix & getMapMatrix()
     {
         return map_matrix_;
     }
