@@ -24,6 +24,8 @@
 
 #define METRIC_CONVERTER    100.0 // To convert meters from odometry to cm in map (might redo this)
 
+#define FREE_AREA_LIMIT 12
+
 class MapHandler {
 public:
 
@@ -62,6 +64,8 @@ public:
         updateOccupiedAreaShortSensor(d_right_back, true, false);
         updateOccupiedAreaShortSensor(d_left_front, false, true);
         updateOccupiedAreaShortSensor(d_left_back, false, false);
+
+        updateFreeAreaUsingRobotPos();
 
         std::vector<std::string> names = {"robot_x_pos", "robot_y_pos", "robot_angle"};
         std::vector<double> values = {robot_x_pos_, robot_y_pos_, robot_angle_};
@@ -159,6 +163,14 @@ private:
 
         map.setBlocked(sensor_reading_x_pos, sensor_reading_y_pos);
     }
+
+        void updateFreeAreaUsingRobotPos() {
+            for(int x = -FREE_AREA_LIMIT; x <= FREE_AREA_LIMIT; x++) {
+                for(int y = -FREE_AREA_LIMIT; y <= FREE_AREA_LIMIT; y++) {
+                    map.setFree(robot_x_pos_ + x, robot_y_pos_ + y);
+                }
+            }
+        }
 };
 
 
