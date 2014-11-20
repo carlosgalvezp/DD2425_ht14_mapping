@@ -73,6 +73,9 @@ public:
         updateFreeAreaUsingRobotPos();
 
         updateFreeAreaShortSensor(d_right_front, true, true);
+        updateFreeAreaShortSensor(d_right_back, true, false);
+        updateFreeAreaShortSensor(d_left_front, false, true);
+        updateFreeAreaShortSensor(d_left_back, false, false);
 
         std::vector<std::string> names = {"robot_x_pos", "robot_y_pos", "robot_angle"};
         std::vector<double> values = {robot_x_pos_, robot_y_pos_, robot_angle_};
@@ -142,9 +145,11 @@ private:
         double sensor_angle_center_offset = getShortSensorAngleCenterOffset(right_side, front);
 
         double x, y;
-        getSensorReadingPos(x, y, sensor_reading_distance, sensor_angle, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset);
-        bool accepted = setBlocked(x, y);
-
+        bool acceptedSensorPos = getSensorReadingPos(x, y, sensor_reading_distance, sensor_angle, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset);
+        if(acceptedSensorPos) {
+            bool accepted = setBlocked(x, y, true);
+        }
+        /*
         if(accepted)
         {
             PrevValue prev_value = getPrevValueShortSensors(right_side, front);
@@ -169,11 +174,12 @@ private:
             prev_value.y = y;
         }
 
+        */
     }
     /*
         Given the sensor reading, will update a wall cell unless max_distance > sensor_reading_distance
     */
-    void getSensorReadingPos(double & x,
+    bool getSensorReadingPos(double & x,
                             double & y,
                             double sensor_reading_distance,         // The distance that the sensor show
                             double sensor_angle,                    // The angle in respect to the robot that the sensor points towards
@@ -181,12 +187,17 @@ private:
                             double sensor_distance_center_offset,   // The distance the sensor is away from the robot center
                             double sensor_angle_center_offset)      // The angle in respect to the robot that the sensor is positioned
     {
-        getSensorReadingPosOffset(x, y, sensor_reading_distance, sensor_angle, max_distance,sensor_distance_center_offset, sensor_angle_center_offset, robot_angle_);
-        x += robot_x_pos_;
-        y += robot_y_pos_;
+        if(getSensorReadingPosOffset(x, y, sensor_reading_distance, sensor_angle, max_distance,sensor_distance_center_offset, sensor_angle_center_offset, robot_angle_))
+        {
+            x += robot_x_pos_;
+            y += robot_y_pos_;
+            return true;
+        }
+        return false;
+
     }
 
-    void getSensorReadingPosOffset(double & x_offset,
+    bool getSensorReadingPosOffset(double & x_offset,
                             double & y_offset,
                             double sensor_reading_distance,         // The distance that the sensor show
                             double sensor_angle,                    // The angle in respect to the plane
@@ -198,7 +209,7 @@ private:
         if(sensor_reading_distance > max_distance)
         {
             // We can not trust the information, to far away reading
-            return;
+            return false;
         }
 
         typedef std::function<double (double)> CosSinFunction;
@@ -220,6 +231,7 @@ private:
         std::vector<std::string> names = {"sensor_angle", "sensor_distance_center_offset", "sensor_angle_center_offset", "sensor_reading_distance", "max_distance", "x_offset", "y_offset"};
         std::vector<double> values = {sensor_angle, sensor_distance_center_offset, sensor_angle_center_offset, sensor_reading_distance, max_distance, x_offset, y_offset};
         RAS_Utils::print(names, values);
+        return true;
     }
 
     void updateFreeAreaShortSensor(double sensor_reading_distance, bool right_side, bool front)
@@ -237,7 +249,7 @@ private:
     }
 
     double getShortSensorAngle(bool right_side) {
-        return (right_side) ? M_PI / 2.0 : (3*M_PI/2);
+        return (right_side) ? (3*M_PI/2) : M_PI / 2.0;
     }
 
     double getShortSensorAngleCenterOffset(bool right_side, bool front)
