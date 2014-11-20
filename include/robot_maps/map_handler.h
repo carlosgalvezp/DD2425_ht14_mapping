@@ -146,15 +146,20 @@ private:
 
         double x, y;
         bool acceptedSensorPos = getSensorReadingPos(x, y, sensor_reading_distance, sensor_angle, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset);
+        bool acceptedBlocking = false;
         if(acceptedSensorPos) {
-            bool accepted = setBlocked(x, y, true);
+            acceptedBlocking = setBlocked(x, y, true);
         }
-        /*
-        if(accepted)
+
+        if(acceptedBlocking)
         {
-            PrevValue prev_value = getPrevValueShortSensors(right_side, front);
+            PrevValue & prev_value = getPrevValueShortSensors(right_side, front);
 
             double pointDistance = getPointDistance(x, y, prev_value.x, prev_value.y);
+
+            std::vector<std::string> names = {"x", "y", "prev_x", "prev_y", "pointDistance"};
+            std::vector<double> values = {x, y, prev_value.x, prev_value.y, pointDistance };
+            RAS_Utils::print(names, values);
 
             if (pointDistance < SENSOR_OLD_VALUE_DISTANCE_LIMIT)
             {
@@ -174,7 +179,7 @@ private:
             prev_value.y = y;
         }
 
-        */
+
     }
     /*
         Given the sensor reading, will update a wall cell unless max_distance > sensor_reading_distance
@@ -228,9 +233,6 @@ private:
         x_offset = getSensorReadingPosOffset([](double angle){ return cos(angle);});
         y_offset = getSensorReadingPosOffset([](double angle){ return sin(angle);});
 
-        std::vector<std::string> names = {"sensor_angle", "sensor_distance_center_offset", "sensor_angle_center_offset", "sensor_reading_distance", "max_distance", "x_offset", "y_offset"};
-        std::vector<double> values = {sensor_angle, sensor_distance_center_offset, sensor_angle_center_offset, sensor_reading_distance, max_distance, x_offset, y_offset};
-        RAS_Utils::print(names, values);
         return true;
     }
 
