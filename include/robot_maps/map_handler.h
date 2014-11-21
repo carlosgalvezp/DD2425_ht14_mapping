@@ -30,6 +30,8 @@
 
 #define SENSOR_OLD_VALUE_DISTANCE_LIMIT 10.0 // 10 cm means only fill the wall cells if the last 2 values were within 10 cm from eachother.
 
+#define FILL_FREE_CELL_TOP_LIMIT 12
+
 class MapHandler {
 public:
 
@@ -148,7 +150,8 @@ private:
         bool acceptedSensorPos = getSensorReadingPos(x, y, sensor_reading_distance, sensor_angle, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset);
         bool acceptedBlocking = false;
         if(acceptedSensorPos) {
-            acceptedBlocking = setBlocked(x, y, true);
+            acceptedBlocking = setBlocked(x, y, false);
+            fillFreeAroundPoint(map.getCell(x, y));
         }
 
         if(acceptedBlocking)
@@ -172,6 +175,7 @@ private:
                     // Here we start filling the function given by the point_distance and angle as (r, theta)
                     getSensorReadingPosOffset(x_offset, y_offset, distance_chunk, function_angle, pointDistance, 0, 0, 0);
                     setBlocked(prev_value.x + x_offset, prev_value.y + y_offset, true);
+                    fillFreeAroundPoint(map.getCell(x, y));
                 }
             }
             // Finally update the prev Value
@@ -243,10 +247,12 @@ private:
         double sensor_angle_center_offset = getShortSensorAngleCenterOffset(right_side, front);
 
         double x,y;
-        for(double sensor_reading_part_distance = 0; sensor_reading_part_distance < sensor_reading_distance && sensor_reading_part_distance < MAX_SHORT_SENSOR_DISTANCE; sensor_reading_part_distance += SENSOR_READING_PART_DISTANCE_BLOCK_SIZE)
+        for(double sensor_reading_part_distance = 0; sensor_reading_part_distance < (sensor_reading_distance - 1) && sensor_reading_part_distance < MAX_SHORT_SENSOR_DISTANCE; sensor_reading_part_distance += SENSOR_READING_PART_DISTANCE_BLOCK_SIZE)
         {
             getSensorReadingPos(x, y, sensor_reading_part_distance, sensor_angle, sensor_reading_part_distance + 1, SHORT_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset);
-            setFree(x, y);
+            if(setFree(x, y)) {
+                fillFreeAroundPoint(map.getCell(x, y));
+            }
         }
     }
 
@@ -274,9 +280,73 @@ private:
         }
     }
 
+    void fillFreeAroundPoint(Cell & free_cell)
+    {
+        std::vector<Cell> closestCells = getClosestCells(free_cell);
+        for(Cell possible_unknown_cell : closestCells)
+        {
+            if(possible_unknown_cell.isUnknown())
+            {
+                // Lets see how big the unknown area is
+                std::vector<std::vector<bool> > visited (FILL_FREE_CELL_TOP_LIMIT * 3, std::vector<bool>(FILL_FREE_CELL_TOP_LIMIT * 3, false));
+                std::vector<Cell> gathered_cells;
+                int visited_i = visited.size()/2;
+                int visited_j = visited.size()/2;
+                bool small_enough_to_fill = getConnectedUnknown(gathered_cells, possible_unknown_cell, visited, visited_i, visited_j);
+                if(small_enough_to_fill) {
+                    for(Cell cell : gathered_cells) {
+                        // It is small enough, lets fill it.
+                        setFree(cell.getI(), cell.getJ());
+                    }
+                }
+
+            }
+        }
+    }
+
+    bool getConnectedUnknown(std::vector<Cell> & gathered_cells, Cell & cell, std::vector<std::vector<bool> > & visited, int visited_i, int visited_j)
+    {
+        std::vector<std::string> names = {"cell_i", "cell_j", "visited_i", "visited_j"};
+        std::vector<double> values = {(double)cell.getI(), (double)cell.getJ(), (double)visited_i, (double)visited_j };
+        RAS_Utils::print(names, values);
+        if(gathered_cells.size() == FILL_FREE_CELL_TOP_LIMIT)
+        {
+            // To many unknowns, abort!
+            return false;
+        }
+        visited[visited_i][visited_j] = true;
+        gathered_cells.push_back(cell);
+        std::vector<Cell> closestCells = getClosestCells(cell);
+        for(Cell close_cell : closestCells)
+        {
+            int close_cell_visited_i = visited_i + (cell.getI() - close_cell.getI());
+            int close_cell_visited_j = visited_j + (cell.getJ() - close_cell.getJ());
+            if(!visited[close_cell_visited_i][close_cell_visited_j] && close_cell.isUnknown())
+            {
+                // Cell can be added
+                if(!getConnectedUnknown(gathered_cells, close_cell, visited, close_cell_visited_i, close_cell_visited_j))
+                {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    std::vector<Cell> getClosestCells(Cell & cell) {
+        int i = cell.getI();
+        int j = cell.getJ();
+        std::vector<Cell> returnList;
+        returnList.push_back(map.getCell(i + 1, j));
+        returnList.push_back(map.getCell(i - 1, j));
+        returnList.push_back(map.getCell(i, j + 1));
+        returnList.push_back(map.getCell(i, j - 1));
+        return returnList;
+    }
+
     bool setBlocked(double x, double y, bool write_over = false)
     {
-        if(write_over || map.getCell(x, y).isUnknown()) {
+        if(write_over || !map.getCell(x, y).isFree()) {
             map.setBlocked(x, y);
             return true;
         }
