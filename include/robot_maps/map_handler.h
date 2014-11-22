@@ -282,7 +282,7 @@ private:
 
     void fillFreeAroundPoint(Cell & free_cell)
     {
-        std::vector<Cell> closestCells = getClosestCells(free_cell);
+        std::vector<Cell> closestCells = get8ClosestCells(free_cell);
         for(Cell possible_unknown_cell : closestCells)
         {
             if(possible_unknown_cell.isUnknown())
@@ -305,18 +305,20 @@ private:
     }
 
     bool getConnectedUnknown(std::vector<Cell> & gathered_cells, Cell & cell, std::vector<std::vector<bool> > & visited, int visited_i, int visited_j)
-    {
+    { /*
         std::vector<std::string> names = {"cell_i", "cell_j", "visited_i", "visited_j"};
         std::vector<double> values = {(double)cell.getI(), (double)cell.getJ(), (double)visited_i, (double)visited_j };
         RAS_Utils::print(names, values);
+        */
         if(gathered_cells.size() == FILL_FREE_CELL_TOP_LIMIT)
         {
             // To many unknowns, abort!
+
             return false;
         }
         visited[visited_i][visited_j] = true;
         gathered_cells.push_back(cell);
-        std::vector<Cell> closestCells = getClosestCells(cell);
+        std::vector<Cell> closestCells = get4ClosestCells(cell);
         for(Cell close_cell : closestCells)
         {
             int close_cell_visited_i = visited_i + (cell.getI() - close_cell.getI());
@@ -333,7 +335,8 @@ private:
         return true;
     }
 
-    std::vector<Cell> getClosestCells(Cell & cell) {
+    std::vector<Cell> get4ClosestCells(Cell & cell)
+    {
         int i = cell.getI();
         int j = cell.getJ();
         std::vector<Cell> returnList;
@@ -341,6 +344,19 @@ private:
         returnList.push_back(map.getCell(i - 1, j));
         returnList.push_back(map.getCell(i, j + 1));
         returnList.push_back(map.getCell(i, j - 1));
+        return returnList;
+    }
+
+    std::vector<Cell> get8ClosestCells(Cell & cell)
+    {
+        int i = cell.getI();
+        int j = cell.getJ();
+        std::vector<Cell> returnList = get4ClosestCells(cell);
+        returnList.push_back(map.getCell(i + 1, j + 1));
+        returnList.push_back(map.getCell(i - 1, j + 1));
+        returnList.push_back(map.getCell(i + 1, j - 1));
+        returnList.push_back(map.getCell(i - 1, j - 1));
+
         return returnList;
     }
 
