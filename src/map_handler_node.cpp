@@ -23,6 +23,7 @@ public:
     {
         // Publisher
         map_pub_ = n.advertise<nav_msgs::OccupancyGrid>(TOPIC_MAP_OCC_GRID, QUEUE_SIZE);
+        map_pub_thick_ = n.advertise<nav_msgs::OccupancyGrid>(TOPIC_MAP_OCC_GRID_THICK, QUEUE_SIZE);
         // Subscriber
         odo_sub_ = n.subscribe(TOPIC_ODOMETRY, 1,  &MapHandlerNode::odoCallback, this);
         adc_sub_ = n.subscribe(TOPIC_ARDUINO_ADC, 1,  &MapHandlerNode::adcCallback, this);
@@ -45,6 +46,10 @@ public:
                     msg.info.width = mapHandler.getWidth();
                     msg.info.resolution = mapHandler.getCellSize() / 100;
                     map_pub_.publish(msg);
+                    msg.data = (&mapHandler.getThickMap())[0];
+                    map_pub_thick_.publish(msg);
+
+
                 }
             }
 
@@ -59,6 +64,7 @@ private:
 
     // ** Publishers and subscribers
     ros::Publisher map_pub_;
+    ros::Publisher map_pub_thick_;
     ros::Subscriber odo_sub_;
     ros::Subscriber adc_sub_;
 

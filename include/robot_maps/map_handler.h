@@ -32,11 +32,14 @@
 
 #define FILL_FREE_CELL_TOP_LIMIT 12
 
+#define THICK_FILLER 5
+
 class MapHandler {
 public:
 
     MapHandler(Map map) :
         map(map),
+        thick_map(map),
         robot_angle_(0),
         robot_x_pos_(0),
         robot_y_pos_(0),
@@ -89,6 +92,11 @@ public:
         return map.getSimpleMapVector();
     }
 
+    std::vector<int8_t> & getThickMap()
+    {
+    return thick_map.getSimpleMapVector();
+    }
+
     int getHeight()
     {
         return map.getHeight();
@@ -116,6 +124,7 @@ private:
     std::vector<PrevValue> prev_value_short_sensors_;
 
     Map map;
+    Map thick_map;
 
     int height_;
     int width_;
@@ -274,7 +283,7 @@ private:
                 x_pos = robot_x_pos_ + x;
                 y_pos = robot_y_pos_ + y;
                 if(map.getCell(x_pos, y_pos).isUnknown()) {
-                    map.setFree(robot_x_pos_ + x, robot_y_pos_ + y);
+                    setFree(robot_x_pos_ + x, robot_y_pos_ + y);
                 }
             }
         }
@@ -364,18 +373,37 @@ private:
     {
         if(write_over || !map.getCell(x, y).isFree()) {
             map.setBlocked(x, y);
+            setBlockedThickMap(x, y);
             return true;
         }
         return false;
+    }
+
+    void setBlockedThickMap(double x, double y)
+    {
+        Cell cell = thick_map.getCell(x, y);
+        int i = cell.getI();
+        int j = cell.getJ();
+
+        for(int i_new = i - THICK_FILLER; i_new <= i + THICK_FILLER; i_new++)
+        {
+            for(int j_new = j - THICK_FILLER; j_new <= j + THICK_FILLER; j_new++)
+            {
+                thick_map.setBlocked(i_new, j_new);
+            }
+        }
+
     }
 
     bool setFree(double x, double y, bool write_over = false)
     {
         if(write_over || map.getCell(x, y).isUnknown()) {
             map.setFree(x, y);
+            if(thick_map.getCell(x, y).isUnknown()) {
+                thick_map.setFree(x, y);
+            }
             return true;
         }
-        return false;
     }
 
     PrevValue & getPrevValueShortSensors(bool right_side, bool front)
