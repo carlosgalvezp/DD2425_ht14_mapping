@@ -4,9 +4,9 @@
 #include <robot_maps/cell.h>
 #include <vector>
 
-#define SIMPLE_UNKNOWN_AREA 100
-#define SIMPLE_FREE_AREA    255
-#define SIMPLE_BLOCKED_AREA 0
+#define SIMPLE_UNKNOWN_AREA 50
+#define SIMPLE_FREE_AREA    0
+#define SIMPLE_BLOCKED_AREA 100
 
 class Map {
 public:
