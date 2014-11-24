@@ -1,5 +1,6 @@
 #include <ros/ros.h>
 #include <robot_maps/map_handler.h>
+#include <ras_utils/ras_names.h>
 #include <robot_maps/map.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <geometry_msgs/Pose2D.h>
@@ -41,15 +42,17 @@ public:
                 {
                     // ** Publish
                     nav_msgs::OccupancyGrid msg;
+                    msg.header.frame_id = COORD_FRAME_WORLD;
                     msg.data = (&mapHandler.getMap())[0];
                     msg.info.height = mapHandler.getHeight();
                     msg.info.width = mapHandler.getWidth();
-                    msg.info.origin.position.x = - mapHandler.getWidth() / 100 / 2;
-                    msg.info.origin.position.y = - mapHandler.getHeight() / 100 / 2;
+                    msg.info.origin.position.x = - mapHandler.getWidth() / 2;
+                    msg.info.origin.position.y = - mapHandler.getHeight() / 2;
                     msg.info.resolution = mapHandler.getCellSize() / 100;
                     map_pub_.publish(msg);
                     msg.data = (&mapHandler.getThickMap())[0];
                     map_pub_thick_.publish(msg);
+
 
                 }
             }
