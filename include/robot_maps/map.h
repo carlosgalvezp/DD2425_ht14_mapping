@@ -5,7 +5,7 @@
 #include <vector>
 
 #define SIMPLE_UNKNOWN_AREA 0
-#define SIMPLE_FREE_AREA    127
+#define SIMPLE_FREE_AREA    100
 #define SIMPLE_BLOCKED_AREA 255
 
 class Map {
