@@ -44,11 +44,12 @@ public:
                     msg.data = (&mapHandler.getMap())[0];
                     msg.info.height = mapHandler.getHeight();
                     msg.info.width = mapHandler.getWidth();
+                    msg.info.origin.position.x = - mapHandler.getWidth() / 2;
+                    msg.info.origin.position.y = - mapHandler.getHeight() / 2;
                     msg.info.resolution = mapHandler.getCellSize() / 100;
                     map_pub_.publish(msg);
                     msg.data = (&mapHandler.getThickMap())[0];
                     map_pub_thick_.publish(msg);
-
 
                 }
             }
