@@ -43,8 +43,8 @@ public:
                     // ** Publish
                     nav_msgs::OccupancyGrid msg;
                     msg.header.frame_id = COORD_FRAME_WORLD;
-                    msg.info.origin.position.x = - mapHandler.getWidth() / 2.0;
-                    msg.info.origin.position.y = - mapHandler.getHeight() / 2.0;
+                    msg.info.origin.position.x = - (mapHandler.getWidth() / 100) / 2.0;
+                    msg.info.origin.position.y = - (mapHandler.getHeight() / 100) / 2.0;
                     msg.data = (&mapHandler.getMap())[0];
                     msg.info.height = mapHandler.getHeight();
                     msg.info.width = mapHandler.getWidth();
