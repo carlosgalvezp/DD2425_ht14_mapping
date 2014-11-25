@@ -44,19 +44,19 @@ public:
                     // ** Publish
                     nav_msgs::OccupancyGrid msg;
                     msg.header.frame_id = COORD_FRAME_WORLD;
-                    msg.data = (&mapHandler.getMap())[0];
+                    msg.data = (&mapHandler.getThickMap())[0];
                     msg.info.height = mapHandler.getHeight();
                     msg.info.width = mapHandler.getWidth();
                     msg.info.origin.position.x = - (mapHandler.getWidth() / 100.0) / 2.0;
                     msg.info.origin.position.y = - (mapHandler.getHeight() / 100.0) / 2.0;
                     msg.info.resolution = mapHandler.getCellSize() / 100.0;
-                    map_pub_.publish(msg);
-
-                    msg.data = (&mapHandler.getThickMap())[0];
                     map_pub_thick_.publish(msg);
 
                     msg.info.resolution = 1;
                     map_pub_thick_rviz_.publish(msg);
+
+                    msg.data = (&mapHandler.getMap())[0];
+                    map_pub_rviz_.publish(msg);
                 }
             }
 
