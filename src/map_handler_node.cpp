@@ -23,9 +23,8 @@ public:
     MapHandlerNode() : mapHandler(Map(MAP_HEIGHT, MAP_WIDTH, MAP_CELL_SIZE))
     {
         // Publisher
-        map_pub_rviz_ = n.advertise<nav_msgs::OccupancyGrid>(TOPIC_MAP_OCC_GRID_RVIZ, QUEUE_SIZE);
+        map_pub_ = n.advertise<nav_msgs::OccupancyGrid>(TOPIC_MAP_OCC_GRID, QUEUE_SIZE);
         map_pub_thick_ = n.advertise<nav_msgs::OccupancyGrid>(TOPIC_MAP_OCC_GRID_THICK, QUEUE_SIZE);
-        map_pub_thick_rviz_ = n.advertise<nav_msgs::OccupancyGrid>(TOPIC_MAP_OCC_GRID_THICK_RVIZ, QUEUE_SIZE);
         // Subscriber
         odo_sub_ = n.subscribe(TOPIC_ODOMETRY, 1,  &MapHandlerNode::odoCallback, this);
         adc_sub_ = n.subscribe(TOPIC_ARDUINO_ADC, 1,  &MapHandlerNode::adcCallback, this);
@@ -44,20 +43,16 @@ public:
                     // ** Publish
                     nav_msgs::OccupancyGrid msg;
                     msg.header.frame_id = COORD_FRAME_WORLD;
-                    msg.data = (&mapHandler.getThickMap())[0];
+                    msg.info.origin.position.x = - mapHandler.getWidth() / 2.0;
+                    msg.info.origin.position.y = - mapHandler.getHeight() / 2.0;
+                    msg.data = (&mapHandler.getMap())[0];
                     msg.info.height = mapHandler.getHeight();
                     msg.info.width = mapHandler.getWidth();
                     msg.info.resolution = mapHandler.getCellSize() / 100.0;
+                    map_pub_.publish(msg);
+
+                    msg.data = (&mapHandler.getThickMap())[0];
                     map_pub_thick_.publish(msg);
-
-
-                    msg.info.origin.position.x = - mapHandler.getWidth() / 2.0;
-                    msg.info.origin.position.y = - mapHandler.getHeight() / 2.0;
-                    msg.info.resolution = 1;
-                    map_pub_thick_rviz_.publish(msg);
-
-                    msg.data = (&mapHandler.getMap())[0];
-                    map_pub_rviz_.publish(msg);
                 }
             }
 
@@ -71,8 +66,7 @@ public:
 private:
 
     // ** Publishers and subscribers
-    ros::Publisher map_pub_rviz_;
-    ros::Publisher map_pub_thick_rviz_;
+    ros::Publisher map_pub_;
     ros::Publisher map_pub_thick_;
     ros::Subscriber odo_sub_;
     ros::Subscriber adc_sub_;
