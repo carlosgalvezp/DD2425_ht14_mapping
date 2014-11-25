@@ -47,11 +47,12 @@ public:
                     msg.data = (&mapHandler.getThickMap())[0];
                     msg.info.height = mapHandler.getHeight();
                     msg.info.width = mapHandler.getWidth();
-                    msg.info.origin.position.x = - (mapHandler.getWidth() / 100.0) / 2.0;
-                    msg.info.origin.position.y = - (mapHandler.getHeight() / 100.0) / 2.0;
                     msg.info.resolution = mapHandler.getCellSize() / 100.0;
                     map_pub_thick_.publish(msg);
 
+
+                    msg.info.origin.position.x = - mapHandler.getWidth() / 2.0;
+                    msg.info.origin.position.y = - mapHandler.getHeight() / 2.0;
                     msg.info.resolution = 1;
                     map_pub_thick_rviz_.publish(msg);
 
