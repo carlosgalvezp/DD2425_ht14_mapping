@@ -7,7 +7,7 @@
 #include <ras_utils/basic_node.h>
 #include <ras_arduino_msgs/ADConverter.h>
 
-#define QUEUE_SIZE      1000
+#define QUEUE_SIZE      1
 #define PUBLISH_RATE    10
 
 // ** Map specific constants
