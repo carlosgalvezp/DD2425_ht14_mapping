@@ -171,7 +171,7 @@ private:
 
             std::vector<std::string> names = {"x", "y", "prev_x", "prev_y", "pointDistance"};
             std::vector<double> values = {x, y, prev_value.x, prev_value.y, pointDistance };
-            RAS_Utils::print(names, values);
+//            RAS_Utils::print(names, values);
 
             if (pointDistance < SENSOR_OLD_VALUE_DISTANCE_LIMIT)
             {
