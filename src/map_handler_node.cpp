@@ -3,18 +3,20 @@
 #include <ras_utils/ras_names.h>
 #include <robot_maps/map.h>
 #include <nav_msgs/OccupancyGrid.h>
+#include <std_msgs/Bool.h>
 #include <geometry_msgs/Pose2D.h>
 #include <ras_utils/basic_node.h>
 #include <ras_arduino_msgs/ADConverter.h>
 #include <ras_utils/occupancy_map_utils.h>
 #include <sstream>
+#include <cstdlib>
 
 #define QUEUE_SIZE      1
 #define PUBLISH_RATE    10
 
 // ** Map specific constants
-#define MAP_HEIGHT      1400    // Corresponds to amount of cells
-#define MAP_WIDTH       1400    // Corresponds to amount of cells
+#define MAP_HEIGHT      1000    // Corresponds to amount of cells
+#define MAP_WIDTH       1000    // Corresponds to amount of cells
 #define MAP_CELL_SIZE   1.0     // Width and Height in // Corresponds to amount of cells CM per Cell
 
 #define TIME_SAVE_MAP   30.0    // [s] After this time interval passes, we save the map. E.g.: save map every 30 seconds
@@ -28,11 +30,13 @@ public:
         // Publisher
         map_pub_ = n.advertise<nav_msgs::OccupancyGrid>(TOPIC_MAP_OCC_GRID, QUEUE_SIZE);
         map_pub_thick_ = n.advertise<nav_msgs::OccupancyGrid>(TOPIC_MAP_OCC_GRID_THICK, QUEUE_SIZE);
+        save_map_pub_ = n.advertise<std_msgs::Bool>(TOPIC_MAP_SAVE,QUEUE_SIZE);
         // Subscriber
         odo_sub_ = n.subscribe(TOPIC_ODOMETRY, 1,  &MapHandlerNode::odoCallback, this);
         adc_sub_ = n.subscribe(TOPIC_ARDUINO_ADC, 1,  &MapHandlerNode::adcCallback, this);
 
         last_saving_time_ = ros::WallTime::now();
+        map_counter_ = 0;
     }
 
     void run()
@@ -70,14 +74,10 @@ public:
                     ros::WallTime current_t = ros::WallTime::now();
                     if( (current_t.toSec() - last_saving_time_.toSec()) > TIME_SAVE_MAP)
                     {
-                        std::stringstream ss_raw, ss_thick;
-                        ss_raw   << RAS_Names::MAP_ROOT_PATH << "raw_map"   << map_counter_ << ".txt";
-                        ss_thick << RAS_Names::MAP_ROOT_PATH << "thick_map" << map_counter_ << ".txt";
-
-                        RAS_Utils::occ_grid::saveMap(msg_raw, ss_raw.str());
-                        RAS_Utils::occ_grid::saveMap(msg_thick, ss_thick.str());
-
-                        ++map_counter_;
+                        ROS_INFO(" ===== PUBLISHING SAVE MAP ==== ");
+                        std_msgs::Bool msg;
+                        msg.data = true;
+                        save_map_pub_.publish(msg);
                         last_saving_time_ = current_t;
                     }
                 }
@@ -95,6 +95,8 @@ private:
     // ** Publishers and subscribers
     ros::Publisher map_pub_;
     ros::Publisher map_pub_thick_;
+    ros::Publisher save_map_pub_;
+
     ros::Subscriber odo_sub_;
     ros::Subscriber adc_sub_;
 

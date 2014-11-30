@@ -1,0 +1,7 @@
+<launch>
+
+  <node pkg="robot_maps" type="map_handler_node" name="mape_handler_node" output = "screen" />
+
+  <node pkg="robot_maps" type="map_saver_node" name="map_saver_node" output = "screen" />
+
+</launch>
