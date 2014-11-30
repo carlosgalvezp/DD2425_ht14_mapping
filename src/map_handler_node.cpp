@@ -6,6 +6,8 @@
 #include <geometry_msgs/Pose2D.h>
 #include <ras_utils/basic_node.h>
 #include <ras_arduino_msgs/ADConverter.h>
+#include <ras_utils/occupancy_map_utils.h>
+#include <sstream>
 
 #define QUEUE_SIZE      1
 #define PUBLISH_RATE    10
@@ -15,6 +17,7 @@
 #define MAP_WIDTH       1400    // Corresponds to amount of cells
 #define MAP_CELL_SIZE   1.0     // Width and Height in // Corresponds to amount of cells CM per Cell
 
+#define TIME_SAVE_MAP   30.0    // [s] After this time interval passes, we save the map. E.g.: save map every 30 seconds
 
 class MapHandlerNode : rob::BasicNode
 {
@@ -29,6 +32,7 @@ public:
         odo_sub_ = n.subscribe(TOPIC_ODOMETRY, 1,  &MapHandlerNode::odoCallback, this);
         adc_sub_ = n.subscribe(TOPIC_ARDUINO_ADC, 1,  &MapHandlerNode::adcCallback, this);
 
+        last_saving_time_ = ros::WallTime::now();
     }
 
     void run()
@@ -41,18 +45,41 @@ public:
 
                 {
                     // ** Publish
-                    nav_msgs::OccupancyGrid msg;
-                    msg.header.frame_id = COORD_FRAME_WORLD;
-                    msg.info.origin.position.x = - (mapHandler.getWidth() / 100) / 2.0;
-                    msg.info.origin.position.y = - (mapHandler.getHeight() / 100) / 2.0;
-                    msg.data = (&mapHandler.getMap())[0];
-                    msg.info.height = mapHandler.getHeight();
-                    msg.info.width = mapHandler.getWidth();
-                    msg.info.resolution = mapHandler.getCellSize() / 100.0;
-                    map_pub_.publish(msg);
+                    nav_msgs::OccupancyGrid msg_raw, msg_thick;
+                    // Raw map
+                    msg_raw.header.frame_id = COORD_FRAME_WORLD;
+                    msg_raw.info.origin.position.x = - (mapHandler.getWidth() / 100) / 2.0;
+                    msg_raw.info.origin.position.y = - (mapHandler.getHeight() / 100) / 2.0;
+                    msg_raw.data = (&mapHandler.getMap())[0];
+                    msg_raw.info.height = mapHandler.getHeight();
+                    msg_raw.info.width = mapHandler.getWidth();
+                    msg_raw.info.resolution = mapHandler.getCellSize() / 100.0;
+                    map_pub_.publish(msg_raw);
 
-                    msg.data = (&mapHandler.getThickMap())[0];
-                    map_pub_thick_.publish(msg);
+                    // Thick map
+                    msg_thick.header.frame_id = COORD_FRAME_WORLD;
+                    msg_thick.info.origin.position.x = - (mapHandler.getWidth() / 100) / 2.0;
+                    msg_thick.info.origin.position.y = - (mapHandler.getHeight() / 100) / 2.0;
+                    msg_thick.data = (&mapHandler.getThickMap())[0];
+                    msg_thick.info.height = mapHandler.getHeight();
+                    msg_thick.info.width = mapHandler.getWidth();
+                    msg_thick.info.resolution = mapHandler.getCellSize() / 100.0;
+                    map_pub_thick_.publish(msg_thick);
+
+                    // ** Save the map if necessary
+                    ros::WallTime current_t = ros::WallTime::now();
+                    if( (current_t.toSec() - last_saving_time_.toSec()) > TIME_SAVE_MAP)
+                    {
+                        std::stringstream ss_raw, ss_thick;
+                        ss_raw   << RAS_Names::MAP_ROOT_PATH << "raw_map"   << map_counter_ << ".txt";
+                        ss_thick << RAS_Names::MAP_ROOT_PATH << "thick_map" << map_counter_ << ".txt";
+
+                        RAS_Utils::occ_grid::saveMap(msg_raw, ss_raw.str());
+                        RAS_Utils::occ_grid::saveMap(msg_thick, ss_thick.str());
+
+                        ++map_counter_;
+                        last_saving_time_ = current_t;
+                    }
                 }
             }
 
@@ -77,6 +104,10 @@ private:
 
     // ** The actual map
     MapHandler mapHandler;
+
+    // ** Variables to help saving the map every X seconds
+    int map_counter_;
+    ros::WallTime last_saving_time_;
 
     void odoCallback(const geometry_msgs::Pose2D::ConstPtr& msg) {
         odo_data_ = msg;
