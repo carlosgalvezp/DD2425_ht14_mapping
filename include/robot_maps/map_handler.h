@@ -33,7 +33,8 @@
 
 #define FILL_FREE_CELL_TOP_LIMIT 12
 
-#define THICK_FILLER 5
+#define THICK_FILLER 6
+#define CELL_COST_LIMIT 15
 
 class MapHandler {
 public:
@@ -48,6 +49,8 @@ public:
         robot_y_pos_offset_(map.getHeight() / 2),
         prev_value_short_sensors_(4, PrevValue(-10000, -10000))
     {
+        //preCalculateCost();
+        preCalculateThickWall();
     }
 
     void update(const geometry_msgs::Pose2D::ConstPtr &odo_data, const ras_arduino_msgs::ADConverter::ConstPtr &adc_data)
@@ -374,22 +377,103 @@ private:
         if(write_over || !map.getCell(x, y).isFree()) {
             map.setBlocked(x, y);
             setBlockedThickMap(x, y);
+            //updateCostThickMap(x, y);
             return true;
         }
         return false;
     }
 
-    void setBlockedThickMap(double x, double y)
+/*
+    void preCalculateCost()
     {
-        Cell cell = thick_map.getCell(x, y);
+        auto costCalculator = [](int i, int j, int size)
+        {
+            double dist = sqrt(pow(i, 2) + pow(j, 2));
+            int value = (double)size - dist + 0.5;
+            if(value < 1)
+            {
+                value = 1;
+            }
+
+            return value;
+        };
+
+        int SIZE_LIMIT = THICK_FILLER + CELL_COST_LIMIT;
+
+        pre_calculated_costs = std::vector<int>(SIZE_LIMIT*SIZE_LIMIT);
+
+        for(int i = - SIZE_LIMIT; i <= SIZE_LIMIT; i++)
+        {
+            for(int j = - SIZE_LIMIT; j <= SIZE_LIMIT; j++)
+            {
+                pre_calculated_costs[j + i * SIZE_LIMIT] = costCalculator(i, j, SIZE_LIMIT);
+            }
+        }
+    }
+
+
+    std::vector<int> pre_calculated_costs;
+
+    void updateCostThickMap(x, y)
+    {
+        Cell & cell = thick_map.getCell(x, y);
         int i = cell.getI();
         int j = cell.getJ();
 
-        for(int i_new = i - THICK_FILLER; i_new <= i + THICK_FILLER; i_new++)
+        int SIZE_LIMIT = THICK_FILLER + CELL_COST_LIMIT;
+
+        for(int i_new = i - SIZE_LIMIT; i_new <= i + SIZE_LIMIT; i_new++)
         {
-            for(int j_new = j - THICK_FILLER; j_new <= j + THICK_FILLER; j_new++)
+            for(int j_new = j - SIZE_LIMIT; j_new <= j + SIZE_LIMIT; j_new++)
             {
-                thick_map.setBlocked(i_new, j_new);
+                int cost = saved_cost[j_new + i_new * SIZE_LIMIT];
+                cell = thick_map.getCell(i_new, j_new);
+                if(!cell.isBlocked() && cell.getCost())
+            }
+        }
+    }
+    */
+
+    void preCalculateThickWall()
+    {
+
+        pre_calculated_thick_wall = std::vector<bool>(pow(THICK_FILLER*2 + 1, 2));
+        for(int i = -THICK_FILLER; i <= THICK_FILLER; i++)
+        {
+            for(int j = -THICK_FILLER; j <= THICK_FILLER; j++)
+            {
+                double dist = sqrt(pow(i, 2) + pow(j, 2)) + 0.5;
+                int index_pos = getIndexPosition(j + THICK_FILLER, (i + THICK_FILLER), (THICK_FILLER*2 + 1));
+                if(dist < THICK_FILLER)
+                {
+                    pre_calculated_thick_wall[index_pos] = true;
+                } else {
+                    pre_calculated_thick_wall[index_pos] = false;
+                }
+            }
+        }
+    }
+
+    int getIndexPosition(int i, int j, int size)
+    {
+        return j + i*size;
+    }
+
+    std::vector<bool> pre_calculated_thick_wall;
+
+    void setBlockedThickMap(double x, double y)
+    {
+        Cell cell = thick_map.getCell(x, y);
+        int center_cell_i = cell.getI();
+        int center_cell_j = cell.getJ();
+
+        for(int i = -THICK_FILLER; i <= THICK_FILLER; i++)
+        {
+            for(int j = -THICK_FILLER; j <= THICK_FILLER; j++)
+            {
+                if(pre_calculated_thick_wall[j + THICK_FILLER + (i + THICK_FILLER) * (THICK_FILLER*2 + 1)]){
+                    thick_map.setBlocked(i + center_cell_i, j + center_cell_j);
+                }
             }
         }
 
