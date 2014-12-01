@@ -39,25 +39,32 @@ public:
     void setBlocked(double x, double y) {
         int i, j;
         convertToIndexValue(x, y, i, j);
-        setCell(Cell(i, j, Cell::BLOCKED), SIMPLE_BLOCKED_AREA);
+        setCell(Cell(i, j, Cell::BLOCKED, map_matrix_[i][j].getCost()));
     }
 
     void setFree(double x, double y) {
         int i, j;
         convertToIndexValue(x, y, i, j);
-        setCell(Cell(i, j, Cell::FREE), SIMPLE_FREE_AREA);
+        setCell(Cell(i, j, Cell::FREE, map_matrix_[i][j].getCost()));
     }
 
     void setUnknown(double x, double y) {
         int i, j;
         convertToIndexValue(x, y, i, j);
-        setCell(Cell(i, j, Cell::UNKNOWN), SIMPLE_UNKNOWN_AREA);
+        setCell(Cell(i, j, Cell::UNKNOWN, map_matrix_[i][j].getCost()));
     }
 
     void setObject(double x, double y, std::string object_name) {
         int i, j;
         convertToIndexValue(x, y, i, j);
-        setCell(ObjectCell(i, j, object_name), SIMPLE_BLOCKED_AREA);
+        setCell(ObjectCell(i, j, object_name, map_matrix_[i][j].getCost()));
+    }
+
+    void setCost(double x, double y, int cost)
+    {
+        int i, j;
+        convertToIndexValue(x, y, i, j);
+        setCell(Cell(i, j, map_matrix_[i][j].getType(), cost));
     }
 
     std::vector<int8_t> & getSimpleMapVector() {
@@ -96,7 +103,7 @@ private:
 
     CellMatrix map_matrix_;
 
-    void setCell(Cell cell, int8_t simple_value)
+    void setCell(Cell cell)
     {
         if(cell.getI() < 0 || cell.getI() >= getWidth() || cell.getJ() < 0 || cell.getJ() > getHeight())
         {
@@ -104,7 +111,13 @@ private:
             ROS_ERROR("X = %i : Y = %i", cell.getI(), cell.getJ());
             return;
         }
-        simple_map_vector_[cell.getI() + getWidth() * cell.getJ()] = simple_value;
+        if(cell.isFree()) {
+            simple_map_vector_[cell.getI() + getWidth() * cell.getJ()] = SIMPLE_FREE_AREA + cell.getCost();
+        } else if(cell.isBlocked() || cell.isObject()){
+            simple_map_vector_[cell.getI() + getWidth() * cell.getJ()] = SIMPLE_BLOCKED_AREA;
+        } else {
+            simple_map_vector_[cell.getI() + getWidth() * cell.getJ()] = SIMPLE_UNKNOWN_AREA;
+        }
         map_matrix_[cell.getI()][cell.getJ()] = cell;
     }
 

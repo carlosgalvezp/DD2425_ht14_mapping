@@ -49,7 +49,7 @@ public:
         robot_y_pos_offset_(map.getHeight() / 2),
         prev_value_short_sensors_(4, PrevValue(-10000, -10000))
     {
-        //preCalculateCost();
+        preCalculateCost();
         preCalculateThickWall();
     }
 
@@ -377,13 +377,13 @@ private:
         if(write_over || !map.getCell(x, y).isFree()) {
             map.setBlocked(x, y);
             setBlockedThickMap(x, y);
-            //updateCostThickMap(x, y);
+            updateCostThickMap(x, y);
             return true;
         }
         return false;
     }
 
-/*
+
     void preCalculateCost()
     {
         auto costCalculator = [](int i, int j, int size)
@@ -406,7 +406,7 @@ private:
         {
             for(int j = - SIZE_LIMIT; j <= SIZE_LIMIT; j++)
             {
-                pre_calculated_costs[j + i * SIZE_LIMIT] = costCalculator(i, j, SIZE_LIMIT);
+                pre_calculated_costs[getIndexPosition(i + SIZE_LIMIT, j + SIZE_LIMIT, (SIZE_LIMIT*2 + 1))] = costCalculator(i, j, SIZE_LIMIT);
             }
         }
     }
@@ -414,25 +414,30 @@ private:
 
     std::vector<int> pre_calculated_costs;
 
-    void updateCostThickMap(x, y)
+    void updateCostThickMap(double x, double y)
     {
+
         Cell & cell = thick_map.getCell(x, y);
-        int i = cell.getI();
-        int j = cell.getJ();
+        int center_cell_i = cell.getI();
+        int center_cell_j = cell.getJ();
 
         int SIZE_LIMIT = THICK_FILLER + CELL_COST_LIMIT;
 
-        for(int i_new = i - SIZE_LIMIT; i_new <= i + SIZE_LIMIT; i_new++)
+        for(int i = - SIZE_LIMIT; i <= SIZE_LIMIT; i++)
         {
-            for(int j_new = j - SIZE_LIMIT; j_new <= j + SIZE_LIMIT; j_new++)
+            for(int j = - SIZE_LIMIT; j <= SIZE_LIMIT; j++)
             {
-                int cost = saved_cost[j_new + i_new * SIZE_LIMIT];
-                cell = thick_map.getCell(i_new, j_new);
-                if(!cell.isBlocked() && cell.getCost())
+                int cost = pre_calculated_costs[getIndexPosition(i + SIZE_LIMIT, j + SIZE_LIMIT, SIZE_LIMIT*2 + 1)];
+                Cell & new_cell = thick_map.getCell(i + center_cell_i, j + center_cell_j);
+                if(cost > new_cell.getCost())
+                {
+                    thick_map.setCost(i + center_cell_i, j + center_cell_j, cost);
+                }
             }
         }
+
     }
-    */
+
 
     void preCalculateThickWall()
     {
