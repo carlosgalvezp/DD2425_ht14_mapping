@@ -9,7 +9,8 @@
 #include <ras_arduino_msgs/ADConverter.h>
 #include <ras_utils/occupancy_map_utils.h>
 #include <sstream>
-#include <cstdlib>
+
+#include <robot_maps/map_io.h>
 
 #define QUEUE_SIZE      1
 #define PUBLISH_RATE    10
@@ -74,10 +75,14 @@ public:
                     ros::WallTime current_t = ros::WallTime::now();
                     if( (current_t.toSec() - last_saving_time_.toSec()) > TIME_SAVE_MAP)
                     {
-                        ROS_INFO(" ===== PUBLISHING SAVE MAP ==== ");
-                        std_msgs::Bool msg;
-                        msg.data = true;
-                        save_map_pub_.publish(msg);
+                        ROS_INFO(" ===== SAVING MAP ==== ");
+                        std::stringstream ss1,ss2;
+                        ss1 << RAS_Names::THICK_MAP_DATA_PATH << "thick_map"<<map_counter_<<".png";
+                        ss2 << RAS_Names::THICK_MAP_METADATA_PATH<<"thick_map"<<map_counter_<<".txt";
+
+                        this->map_io_.saveMap(ss1.str(), ss2.str(), msg_thick);
+
+                        ++map_counter_;
                         last_saving_time_ = current_t;
                     }
                 }
@@ -106,6 +111,7 @@ private:
 
     // ** The actual map
     MapHandler mapHandler;
+    Map_IO map_io_;
 
     // ** Variables to help saving the map every X seconds
     int map_counter_;
