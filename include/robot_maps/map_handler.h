@@ -39,6 +39,8 @@
 class MapHandler {
 public:
 
+    MapHandler(){}
+
     MapHandler(Map map) :
         map(map),
         thick_map(map),
@@ -49,8 +51,10 @@ public:
         robot_y_pos_offset_(map.getHeight() / 2),
         prev_value_short_sensors_(4, PrevValue(-10000, -10000))
     {
+
         preCalculateCost();
         preCalculateThickWall();
+
     }
 
     void update(const geometry_msgs::Pose2D::ConstPtr &odo_data, const ras_arduino_msgs::ADConverter::ConstPtr &adc_data)
@@ -392,6 +396,7 @@ private:
 
     void preCalculateCost()
     {
+
         auto costCalculator = [](int i, int j, int size)
         {
             double dist = sqrt(pow(i, 2) + pow(j, 2));
@@ -406,13 +411,17 @@ private:
 
         int SIZE_LIMIT = THICK_FILLER + CELL_COST_LIMIT;
 
-        pre_calculated_costs = std::vector<int>(SIZE_LIMIT*SIZE_LIMIT);
+
+        pre_calculated_costs = std::vector<int>(pow(SIZE_LIMIT*2 + 1, 2));
+
+
 
         for(int i = - SIZE_LIMIT; i <= SIZE_LIMIT; i++)
         {
             for(int j = - SIZE_LIMIT; j <= SIZE_LIMIT; j++)
             {
-                pre_calculated_costs[getIndexPosition(i + SIZE_LIMIT, j + SIZE_LIMIT, (SIZE_LIMIT*2 + 1))] = costCalculator(i, j, SIZE_LIMIT);
+                int index = getIndexPosition(i + SIZE_LIMIT, j + SIZE_LIMIT, (SIZE_LIMIT*2 + 1));
+                pre_calculated_costs[index] = costCalculator(i, j, SIZE_LIMIT);
             }
         }
     }

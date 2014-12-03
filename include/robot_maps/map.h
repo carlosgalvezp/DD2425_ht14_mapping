@@ -13,6 +13,8 @@ public:
     typedef std::vector< Cell > CellVector;
     typedef std::vector< CellVector > CellMatrix;
 
+    Map() {}
+
     Map(int height, int width, double cell_size) :
         height_(height),
         width_(width),

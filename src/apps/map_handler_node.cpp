@@ -30,6 +30,7 @@ public:
 
     MapHandlerNode() : mapHandler(Map(MAP_HEIGHT, MAP_WIDTH, MAP_CELL_SIZE))
     {
+
         // Publisher
         map_pub_ = n.advertise<nav_msgs::OccupancyGrid>(TOPIC_MAP_OCC_GRID, QUEUE_SIZE);
         map_pub_thick_ = n.advertise<nav_msgs::OccupancyGrid>(TOPIC_MAP_OCC_GRID_THICK, QUEUE_SIZE);
@@ -40,6 +41,7 @@ public:
 
         last_saving_time_ = ros::WallTime::now();
         map_counter_ = 0;
+
     }
 
     void run()
@@ -92,6 +94,7 @@ public:
 
                 }
             }
+
 
             // ** Sleep
             ros::spinOnce();
