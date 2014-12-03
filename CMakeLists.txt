@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 2.4.6)
+set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
 project(robot_maps)
 
@@ -13,14 +14,16 @@ include_directories(
   ${catkin_INCLUDE_DIRS}
 )
 
-FILE(GLOB_RECURSE HEADERS include/${PROJECT_NAME}/*.h)
+# OpenCV
+FIND_PACKAGE( OpenCV REQUIRED )
+include_directories(${OpenCV_INCLUDE_DIRS})
+link_directories(${OpenCV_LIBRARY_DIRS})
+link_libraries(${OpenCV_LIBRARIES})
 
-add_executable(map_handler_node src/map_handler_node.cpp ${HEADERS})
+FILE(GLOB HEADERS include/${PROJECT_NAME}/*.h)
+FILE(GLOB SOURCES src/*.cpp)
+
+add_executable(map_handler_node src/apps/map_handler_node.cpp ${HEADERS} ${SOURCES})
 add_dependencies(map_handler_node ${catkin_EXPORTED_TARGETS})
-target_link_libraries(map_handler_node ${catkin_LIBRARIES})
+target_link_libraries(map_handler_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
-add_executable(map_saver_node src/map_saver_node.cpp ${HEADERS})
-add_dependencies(map_saver_node ${catkin_EXPORTED_TARGETS})
-target_link_libraries(map_saver_node ${catkin_LIBRARIES})
-
-set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
