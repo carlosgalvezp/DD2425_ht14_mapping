@@ -11,8 +11,11 @@
 #include <sstream>
 
 #include <robot_maps/map_io.h>
-
 #include <ras_utils/occupancy_map_utils.h>
+
+#include <boost/filesystem.hpp>
+
+#include <opencv2/highgui/highgui.hpp>
 
 #define QUEUE_SIZE      1
 #define PUBLISH_RATE    10
@@ -41,7 +44,9 @@ public:
 
         last_saving_time_ = ros::WallTime::now();
         map_counter_ = 0;
-
+        // Reset map directory
+        boost::filesystem::remove_all(RAS_Names::MAP_ROOT_PATH); // This also removes the /raw/ folder
+        boost::filesystem::create_directory(RAS_Names::MAP_ROOT_PATH); // Re-create it
     }
 
     void run()
@@ -100,7 +105,6 @@ public:
             ros::spinOnce();
             loop_rate.sleep();
         }
-        std::cout << "Exiting...\n";
     }
 
 private:
