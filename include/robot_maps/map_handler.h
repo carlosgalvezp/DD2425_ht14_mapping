@@ -29,7 +29,7 @@
 
 #define SENSOR_READING_PART_DISTANCE_BLOCK_SIZE 0.5 // Value 0.1 means that when working through the linear function "Sensor start to sensor reading", we look 0.1 cm at a time. Lower value leads to more computational costs but better precission in the sense of not missing a "hit node"
 
-#define SENSOR_OLD_VALUE_DISTANCE_LIMIT 10.0 // 10 cm means only fill the wall cells if the last 2 values were within 10 cm from eachother.
+#define SENSOR_OLD_VALUE_DISTANCE_LIMIT 5.0 // 10 cm means only fill the wall cells if the last 2 values were within 10 cm from eachother.
 
 #define FILL_FREE_CELL_TOP_LIMIT 12
 
@@ -162,8 +162,8 @@ private:
         bool acceptedSensorPos = getSensorReadingPos(x, y, sensor_reading_distance, sensor_angle, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset);
         bool acceptedBlocking = false;
         if(acceptedSensorPos) {
-            acceptedBlocking = setBlocked(x, y, false);
-            fillFreeAroundPoint(map.getCell(x, y));
+            acceptedBlocking = canBlock(x, y, false);
+             // fillFreeAroundPoint(map.getCell(x, y));
         }
 
         if(acceptedBlocking)
@@ -182,7 +182,7 @@ private:
 
                 double function_angle = getAngleFromPoints(prev_value.x, prev_value.y, x, y);
                 double x_offset, y_offset;
-                for(double distance_chunk = SENSOR_READING_PART_DISTANCE_BLOCK_SIZE; distance_chunk < pointDistance; distance_chunk += SENSOR_READING_PART_DISTANCE_BLOCK_SIZE)
+                for(double distance_chunk = 0; distance_chunk <= pointDistance; distance_chunk += SENSOR_READING_PART_DISTANCE_BLOCK_SIZE)
                 {
                     // Here we start filling the function given by the point_distance and angle as (r, theta)
                     getSensorReadingPosOffset(x_offset, y_offset, distance_chunk, function_angle, pointDistance, 0, 0, 0);
@@ -372,9 +372,15 @@ private:
         return returnList;
     }
 
+    bool canBlock(double x, double y, bool write_over = false)
+    {
+         return (write_over || !map.getCell(x, y).isFree());
+    }
+
     bool setBlocked(double x, double y, bool write_over = false)
     {
-        if(write_over || !map.getCell(x, y).isFree()) {
+        if(canBlock(x, y, write_over))
+        {
             map.setBlocked(x, y);
             setBlockedThickMap(x, y);
             updateCostThickMap(x, y);
@@ -435,7 +441,6 @@ private:
                 }
             }
         }
-
     }
 
 

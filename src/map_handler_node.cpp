@@ -11,6 +11,8 @@
 #include <sstream>
 #include <cstdlib>
 
+#include <ras_utils/occupancy_map_utils.h>
+
 #define QUEUE_SIZE      1
 #define PUBLISH_RATE    10
 
@@ -48,6 +50,8 @@ public:
                 mapHandler.update(odo_data_, adc_data_);
 
                 {
+
+
                     // ** Publish
                     nav_msgs::OccupancyGrid msg_raw, msg_thick;
                     // Raw map
@@ -80,6 +84,7 @@ public:
                         save_map_pub_.publish(msg);
                         last_saving_time_ = current_t;
                     }
+
                 }
             }
 
