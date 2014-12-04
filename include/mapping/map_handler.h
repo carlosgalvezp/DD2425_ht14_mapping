@@ -317,10 +317,12 @@ private:
                 if(map.getCell(x_pos, y_pos).isUnknown()) {
                     setFree(x_pos, y_pos);
                 }
+                /*
                 if(thick_map.getCell(x_pos, y_pos).isBlocked()) {
                     setFree(x_pos, y_pos, true);
                     decreaseCostThickMap(x_pos, y_pos);
                 }
+                */
             }
         }
     }
