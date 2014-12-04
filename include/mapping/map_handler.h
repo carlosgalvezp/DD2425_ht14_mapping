@@ -29,12 +29,12 @@
 
 #define SENSOR_READING_PART_DISTANCE_BLOCK_SIZE 0.5 // Value 0.1 means that when working through the linear function "Sensor start to sensor reading", we look 0.1 cm at a time. Lower value leads to more computational costs but better precission in the sense of not missing a "hit node"
 
-#define SENSOR_OLD_VALUE_DISTANCE_LIMIT 3.0 // 10 cm means only fill the wall cells if the last 2 values were within 10 cm from eachother.
+#define SENSOR_OLD_VALUE_DISTANCE_LIMIT 2.0 // 10 cm means only fill the wall cells if the last 2 values were within 10 cm from eachother.
 
 #define FILL_FREE_CELL_TOP_LIMIT 12
 
-#define THICK_FILLER 6
-#define CELL_COST_LIMIT 15
+#define THICK_FILLER 3
+#define CELL_COST_LIMIT 20
 
 class MapHandler {
 public:
