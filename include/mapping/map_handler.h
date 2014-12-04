@@ -25,7 +25,7 @@
 
 #define METRIC_CONVERTER    100.0 // To convert meters from odometry to cm in map (might redo this)
 
-#define FREE_AREA_LIMIT 12
+#define FREE_AREA_LIMIT 10
 
 #define SENSOR_READING_PART_DISTANCE_BLOCK_SIZE 0.5 // Value 0.1 means that when working through the linear function "Sensor start to sensor reading", we look 0.1 cm at a time. Lower value leads to more computational costs but better precission in the sense of not missing a "hit node"
 
