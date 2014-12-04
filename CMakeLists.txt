@@ -20,6 +20,10 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 link_directories(${OpenCV_LIBRARY_DIRS})
 link_libraries(${OpenCV_LIBRARIES})
 
+# Eigen
+find_package(Eigen REQUIRED)
+include_directories(${EIGEN_INCLUDE_DIRS})
+
 FILE(GLOB HEADERS include/${PROJECT_NAME}/*.h)
 FILE(GLOB SOURCES src/*.cpp)
 
@@ -30,3 +34,7 @@ target_link_libraries(map_handler_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 add_executable(map_loader_node src/apps/map_loader_node.cpp ${HEADERS} ${SOURCES})
 add_dependencies(map_loader_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(map_loader_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable(object_map_node src/apps/object_map_node.cpp ${HEADERS} ${SOURCES})
+add_dependencies(object_map_node ${catkin_EXPORTED_TARGETS})
+target_link_libraries(object_map_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})

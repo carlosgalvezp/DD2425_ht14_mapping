@@ -1,5 +1,8 @@
 <launch>
 
+<!-- Mapping -->
   <node pkg="mapping" type="map_handler_node" name="map_handler_node" output = "screen" />
 
+<!-- TSP solver -->
+  <node pkg="mapping" type="object_map_node" name="object_map_node" output = "screen" />
 </launch>
