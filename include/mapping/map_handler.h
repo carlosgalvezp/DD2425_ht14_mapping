@@ -15,7 +15,7 @@
 #include <string>
 
 #define MAX_SHORT_SENSOR_DISTANCE   30
-#define MAX_LONG_SENSOR_DISTANCE    80
+#define MAX_LONG_SENSOR_DISTANCE    30
 
 #define SHORT_SENSOR_DISTANCE_FROM_CENTER           10.68
 #define SHORT_RIGHT_FRONT_SENSOR_ANGLE_FROM_FORWARD -0.53839
@@ -51,7 +51,8 @@ public:
         robot_y_pos_(0),
         robot_x_pos_offset_(map.getWidth() / 2),
         robot_y_pos_offset_(map.getHeight() / 2),
-        prev_value_short_sensors_(4, PrevValue(-10000, -10000))
+        prev_value_short_sensors_(4, PrevValue(-10000, -10000)),
+        prev_value_long_sensors_(2, PrevValue(-10000, -10000))
     {
 
         preCalculateCost();
@@ -76,7 +77,7 @@ public:
            adc_data->ch2);
 
         // Update where we detect walls based on sensor readings
-       // updateOccupiedAreaLongSensor(dist_front_large_range, true);
+        updateOccupiedAreaLongSensor(sd.front_, true);
        // updateOccupiedAreaLongSensor(dist_back_large_range, false);
 
         updateOccupiedAreaShortSensor(sd.right_front_, true, true);
@@ -90,6 +91,8 @@ public:
         updateFreeAreaShortSensor(sd.right_back_, true, false);
         updateFreeAreaShortSensor(sd.left_front_, false, true);
         updateFreeAreaShortSensor(sd.left_back_, false, false);
+
+        updateFreeAreaLongSensor(sd.front_, true);
 
         std::vector<std::string> names = {"robot_x_pos", "robot_y_pos", "robot_angle"};
         std::vector<double> values = {robot_x_pos_, robot_y_pos_, robot_angle_};
@@ -131,6 +134,7 @@ private:
     };
 
     std::vector<PrevValue> prev_value_short_sensors_;
+    std::vector<PrevValue> prev_value_long_sensors_;
 
     Map map;
     Map thick_map;
@@ -152,20 +156,26 @@ private:
     {
         double sensor_angle = (front) ? 0 : M_PI;
         double sensor_angle_center_offset = (front) ? LONG_FRONT_SENSOR_ANGLE_FROM_FORWARD : M_PI + LONG_FRONT_SENSOR_ANGLE_FROM_FORWARD;
+        PrevValue & prev_value = getPrevValueLongSensors(front);
 
-        double x, y;
-        getSensorReadingPos(x, y, sensor_reading_distance, sensor_angle, MAX_LONG_SENSOR_DISTANCE, LONG_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset);
-        setBlocked(x, y);
+        updateOccupiedArea(prev_value, sensor_reading_distance, sensor_angle, sensor_angle_center_offset, MAX_LONG_SENSOR_DISTANCE, LONG_SENSOR_DISTANCE_FROM_CENTER);
     }
 
     void updateOccupiedAreaShortSensor(double sensor_reading_distance, bool right_side, bool front)
     {
         double sensor_angle = getShortSensorAngle(right_side);
-
         double sensor_angle_center_offset = getShortSensorAngleCenterOffset(right_side, front);
+        PrevValue & prev_value = getPrevValueShortSensors(right_side, front);
 
+        updateOccupiedArea(prev_value, sensor_reading_distance, sensor_angle, sensor_angle_center_offset, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER);
+    }
+
+    void updateOccupiedArea(PrevValue & prev_value, double sensor_reading_distance, double sensor_angle, double sensor_angle_center_offset, int max_sensor_distance, double sensor_distance_from_center)
+    {
         double x, y;
-        bool acceptedSensorPos = getSensorReadingPos(x, y, sensor_reading_distance, sensor_angle, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset);
+        bool acceptedSensorPos = getSensorReadingPos(x, y, sensor_reading_distance, sensor_angle, max_sensor_distance, sensor_distance_from_center, sensor_angle_center_offset);
+
+
         bool acceptedBlocking = false;
         if(acceptedSensorPos) {
             acceptedBlocking = canBlock(x, y);
@@ -174,7 +184,6 @@ private:
 
         if(acceptedBlocking)
         {
-            PrevValue & prev_value = getPrevValueShortSensors(right_side, front);
 
             double pointDistance = getPointDistance(x, y, prev_value.x, prev_value.y);
 
@@ -200,9 +209,9 @@ private:
             prev_value.x = x;
             prev_value.y = y;
         }
-
-
     }
+
+
     /*
         Given the sensor reading, will update a wall cell unless max_distance > sensor_reading_distance
     */
@@ -258,16 +267,29 @@ private:
         return true;
     }
 
+    void updateFreeAreaLongSensor(double sensor_reading_distance, bool front)
+    {
+        double sensor_angle = (front) ? 0 : M_PI;
+        double sensor_angle_center_offset = (front) ? LONG_FRONT_SENSOR_ANGLE_FROM_FORWARD : M_PI + LONG_FRONT_SENSOR_ANGLE_FROM_FORWARD;
+
+        updateFreeArea(sensor_reading_distance, sensor_angle, sensor_angle_center_offset, MAX_LONG_SENSOR_DISTANCE, LONG_SENSOR_DISTANCE_FROM_CENTER);
+    }
+
     void updateFreeAreaShortSensor(double sensor_reading_distance, bool right_side, bool front)
     {
         double sensor_angle = getShortSensorAngle(right_side);
 
         double sensor_angle_center_offset = getShortSensorAngleCenterOffset(right_side, front);
 
+        updateFreeArea(sensor_reading_distance, sensor_angle, sensor_angle_center_offset, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER);
+
+    }
+    void updateFreeArea(double sensor_reading_distance, double sensor_angle, double sensor_angle_center_offset, int max_sensor_distance, double sensor_distance_from_center)
+    {
         double x,y;
-        for(double sensor_reading_part_distance = 0; sensor_reading_part_distance < (sensor_reading_distance - 1) && sensor_reading_part_distance < MAX_SHORT_SENSOR_DISTANCE; sensor_reading_part_distance += SENSOR_READING_PART_DISTANCE_BLOCK_SIZE)
+        for(double sensor_reading_part_distance = 0; sensor_reading_part_distance < (sensor_reading_distance - 1) && sensor_reading_part_distance < max_sensor_distance; sensor_reading_part_distance += SENSOR_READING_PART_DISTANCE_BLOCK_SIZE)
         {
-            getSensorReadingPos(x, y, sensor_reading_part_distance, sensor_angle, sensor_reading_part_distance + 1, SHORT_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset);
+            getSensorReadingPos(x, y, sensor_reading_part_distance, sensor_angle, sensor_reading_part_distance + 1, sensor_distance_from_center, sensor_angle_center_offset);
             if(setFree(x, y)) {
                 fillFreeAroundPoint(map.getCell(x, y));
             }
@@ -545,6 +567,12 @@ private:
         int index =  (right_side) ? 0 : 1 ;
         index |= (front) ? 0 : 2;
         return prev_value_short_sensors_[index];
+    }
+
+    PrevValue & getPrevValueLongSensors(bool front)
+    {
+        int index =  (front) ? 0 : 1 ;
+        return prev_value_long_sensors_[index];
     }
 
     double getPointDistance(double x1, double y1, double x2, double y2)
