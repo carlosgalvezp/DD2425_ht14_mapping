@@ -33,8 +33,8 @@
 
 #define FILL_FREE_CELL_TOP_LIMIT 12
 
-#define THICK_FILLER 4
-#define CELL_COST_LIMIT 17
+#define THICK_FILLER 6
+#define CELL_COST_LIMIT 15
 
 #define FREE_CELL_WRITE_OVER 2
 
@@ -533,7 +533,7 @@ private:
     {
         if(write_over || map.getCell(x, y).isUnknown()) {
             map.setFree(x, y);
-            if(thick_map.getCell(x, y).isUnknown()) {
+            if(write_over || thick_map.getCell(x, y).isUnknown()) {
                 thick_map.setFree(x, y);
             }
             return true;
