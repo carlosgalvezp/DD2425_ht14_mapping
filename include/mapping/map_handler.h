@@ -36,6 +36,8 @@
 #define THICK_FILLER 4
 #define CELL_COST_LIMIT 17
 
+#define FREE_CELL_WRITE_OVER 2
+
 class MapHandler {
 public:
 
@@ -290,7 +292,11 @@ private:
                 x_pos = robot_x_pos_ + x;
                 y_pos = robot_y_pos_ + y;
                 if(map.getCell(x_pos, y_pos).isUnknown()) {
-                    setFree(robot_x_pos_ + x, robot_y_pos_ + y);
+                    setFree(x_pos, y_pos);
+                }
+                if(map.getCell(x_pos, y_pos).isBlocked()) {
+                    setFree(x_pos, y_pos);
+                    decreaseCostThickMap(x_pos, y_pos);
                 }
             }
         }
@@ -447,6 +453,28 @@ private:
                 if(cost > new_cell.getCost())
                 {
                     thick_map.setCost(i + center_cell_i, j + center_cell_j, cost);
+                }
+            }
+        }
+    }
+
+    void decreaseCostThickMap(double x, double y)
+    {
+
+        Cell & cell = thick_map.getCell(x, y);
+        int center_cell_i = cell.getI();
+        int center_cell_j = cell.getJ();
+
+        int SIZE_LIMIT = THICK_FILLER + CELL_COST_LIMIT;
+
+        for(int i = - SIZE_LIMIT; i <= SIZE_LIMIT; i++)
+        {
+            for(int j = - SIZE_LIMIT; j <= SIZE_LIMIT; j++)
+            {
+                Cell & new_cell = thick_map.getCell(i + center_cell_i, j + center_cell_j);
+                if(new_cell.getCost() > 1)
+                {
+                    thick_map.setCost(i + center_cell_i, j + center_cell_j, new_cell.getCost() - 1);
                 }
             }
         }
