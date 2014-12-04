@@ -18,6 +18,8 @@ private:
     // ** Publishers and subscribers
     ros::Publisher map_pub_thick_;
     nav_msgs::OccupancyGrid map_msg_;
+    Map_IO map_io_;
+
 };
 
 int main(int argc, char **argv) {
@@ -38,8 +40,7 @@ MapLoaderNode::MapLoaderNode()
     map_pub_thick_ = n.advertise<nav_msgs::OccupancyGrid>(TOPIC_MAP_OCC_GRID_THICK, QUEUE_SIZE);
 
     // Read map from disk
-    Map_IO map_io;
-    map_io.loadMap(RAS_Names::THICK_MAP_DATA_PATH,
+    map_io_.loadMap(RAS_Names::THICK_MAP_DATA_PATH,
                    RAS_Names::THICK_MAP_METADATA_PATH, map_msg_);
 }
 

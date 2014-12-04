@@ -9,6 +9,7 @@
 
 // OpenCV
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgproc/imgproc.hpp>
 class Map_IO
 {
 public:
@@ -21,5 +22,7 @@ public:
     bool loadMap(const std::string &path_img,
                  const std::string &path_metadata,
                        nav_msgs::OccupancyGrid &map);
+private:
+    std::vector<int8_t> v_;
 };
 #endif // MAP_IO_H

@@ -17,40 +17,39 @@
 #define PUBLISH_RATE    10
 
 
-class ObjectMapNode : rob::BasicNode
-{
-public:
+// ** Global variables and functions to be called by the SIGINT handle.
+// ** I am sorry but there is no other option!! :(
 
-    ObjectMapNode();
     void computeObjectsPath(std::vector<Node> &objects_path);
     void saveObjectsPath(const std::string& path, const std::vector<Node> &objects_path);
-private:
     nav_msgs::OccupancyGrid::ConstPtr map_msg_;
     visualization_msgs::MarkerArray::ConstPtr object_msg_;
-
-    // ** Subscribers
-    ros::Subscriber map_sub_, object_position_sub_;
 
     // ** Callbacks
     void mapCallback(const nav_msgs::OccupancyGrid::ConstPtr &msg);
     void objectsCallback(const visualization_msgs::MarkerArray::ConstPtr &msg);
-};
 
-ObjectMapNode o;
 
 void mySigintHandler(int sig)
 {
     // ** Before exiting, compute TSP path and save it to disk
     std::cout <<"[ObjectMapNode] Computing TSP path for objects" << std::endl;
     std::vector<Node> objects_path;
-    o.computeObjectsPath(objects_path);
-    o.saveObjectsPath(RAS_Names::OBJECT_BEST_PATH_PATH, objects_path);
+    computeObjectsPath(objects_path);
+    saveObjectsPath(RAS_Names::OBJECT_BEST_PATH_PATH, objects_path);
 
     // All the default sigint handler does is call shutdown()
     ros::shutdown();
 }
-int main(int argc, char **argv) {
+int main(int argc, char **argv) {    
     ros::init(argc, argv, "map_loader_node");
+    ros::NodeHandle nh;
+
+    // ** Subscribers
+    ros::Subscriber map_sub_, object_position_sub_;
+    map_sub_ = nh.subscribe(TOPIC_MAP_OCC_GRID_THICK, QUEUE_SIZE, &mapCallback);
+    object_position_sub_ = nh.subscribe(TOPIC_MARKERS, QUEUE_SIZE, &objectsCallback);
+
     // Override the default ros sigint handler.
     // This must be set after the first NodeHandle is created.
     signal(SIGINT, mySigintHandler);
@@ -62,24 +61,17 @@ int main(int argc, char **argv) {
 
 // ===============================================================================
 // ===============================================================================
-ObjectMapNode::ObjectMapNode()
+void mapCallback(const nav_msgs::OccupancyGrid::ConstPtr &msg)
 {
-    // Subscribers
-    map_sub_ = n.subscribe(TOPIC_MAP_OCC_GRID_THICK, QUEUE_SIZE, &ObjectMapNode::mapCallback, this);
-    object_position_sub_ = n.subscribe(TOPIC_MARKERS, QUEUE_SIZE, &ObjectMapNode::objectsCallback, this);
+    map_msg_ = msg;
 }
 
-void ObjectMapNode::mapCallback(const nav_msgs::OccupancyGrid::ConstPtr &msg)
+void objectsCallback(const visualization_msgs::MarkerArray::ConstPtr &msg)
 {
-    this->map_msg_ = msg;
+    object_msg_ = msg;
 }
 
-void ObjectMapNode::objectsCallback(const visualization_msgs::MarkerArray::ConstPtr &msg)
-{
-    this->object_msg_ = msg;
-}
-
-void ObjectMapNode::computeObjectsPath(std::vector<Node> &objects_path)
+void computeObjectsPath(std::vector<Node> &objects_path)
 {
     if(map_msg_!= 0 || object_msg_ != 0)
     {
@@ -133,7 +125,7 @@ void ObjectMapNode::computeObjectsPath(std::vector<Node> &objects_path)
         std::cout << "[ObjectMapNode]: map_msgs = 0 or object_msg = 0" <<std::endl;
     }
 }
-void ObjectMapNode::saveObjectsPath(const std::string &path, const std::vector<Node> &objects_path)
+void saveObjectsPath(const std::string &path, const std::vector<Node> &objects_path)
 {
     if(objects_path.size() != 0)
     {

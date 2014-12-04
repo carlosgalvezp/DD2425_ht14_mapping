@@ -36,7 +36,7 @@ bool Map_IO::loadMap(const std::string &path_img,
     // ** Read metadata
     std::ifstream file;
     file.open(path_metadata);
-    std::size_t rows, cols, px, py;
+    int rows, cols, px, py;
     double resolution;
     std::string frame_id;
 
@@ -45,9 +45,13 @@ bool Map_IO::loadMap(const std::string &path_img,
 
     // ** Read image and get data as array
     cv::Mat img = cv::imread(path_img);
-    std::vector<int8_t> v (*img.data);
+    cv::Mat img2 = img.reshape(0,1);
+    cv::imshow("IMG",img);
+    cv::waitKey();
+    v_.reserve(img2.cols);
+    memcpy(&(v_[0]), img2.data, img2.cols*sizeof(int8_t));
 
-    map.data = (&v)[0];
+    map.data.resize(rows*cols);
     map.info.height = rows;
     map.info.width = cols;
     map.info.resolution = resolution;
