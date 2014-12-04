@@ -77,7 +77,7 @@ public:
            adc_data->ch2);
 
         // Update where we detect walls based on sensor readings
-        updateOccupiedAreaLongSensor(sd.front_, true);
+        //updateOccupiedAreaLongSensor(sd.front_, true);
        // updateOccupiedAreaLongSensor(dist_back_large_range, false);
 
         updateOccupiedAreaShortSensor(sd.right_front_, true, true);
@@ -93,7 +93,7 @@ public:
         updateFreeAreaShortSensor(sd.left_back_, false, false);
 
 
-        updateFreeAreaLongSensor(sd.front_, true);
+       // updateFreeAreaLongSensor(sd.front_, true);
 
 //        std::vector<std::string> names = {"robot_x_pos", "robot_y_pos", "robot_angle"};
 //        std::vector<double> values = {robot_x_pos_, robot_y_pos_, robot_angle_};
