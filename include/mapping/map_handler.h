@@ -168,7 +168,7 @@ private:
         bool acceptedSensorPos = getSensorReadingPos(x, y, sensor_reading_distance, sensor_angle, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset);
         bool acceptedBlocking = false;
         if(acceptedSensorPos) {
-            acceptedBlocking = canBlock(x, y, true);
+            acceptedBlocking = canBlock(x, y);
              // fillFreeAroundPoint(map.getCell(x, y));
         }
 
@@ -294,7 +294,7 @@ private:
                 if(map.getCell(x_pos, y_pos).isUnknown()) {
                     setFree(x_pos, y_pos);
                 }
-                if(map.getCell(x_pos, y_pos).isBlocked()) {
+                if(thick_map.getCell(x_pos, y_pos).isBlocked()) {
                     setFree(x_pos, y_pos, true);
                     decreaseCostThickMap(x_pos, y_pos);
                 }
