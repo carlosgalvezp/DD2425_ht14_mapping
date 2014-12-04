@@ -61,7 +61,7 @@ public:
 
     void update(const geometry_msgs::Pose2D::ConstPtr &odo_data, const ras_arduino_msgs::ADConverter::ConstPtr &adc_data)
     {
-        ROS_INFO("[ROBOT_MAPS");
+//        ROS_INFO("[ROBOT_MAPS");
 
         // Retrieve the data
         robot_x_pos_ = odo_data->x * METRIC_CONVERTER + robot_x_pos_offset_;
@@ -91,9 +91,9 @@ public:
         updateFreeAreaShortSensor(sd.left_front_, false, true);
         updateFreeAreaShortSensor(sd.left_back_, false, false);
 
-        std::vector<std::string> names = {"robot_x_pos", "robot_y_pos", "robot_angle"};
-        std::vector<double> values = {robot_x_pos_, robot_y_pos_, robot_angle_};
-        RAS_Utils::print(names, values);
+//        std::vector<std::string> names = {"robot_x_pos", "robot_y_pos", "robot_angle"};
+//        std::vector<double> values = {robot_x_pos_, robot_y_pos_, robot_angle_};
+//        RAS_Utils::print(names, values);
 
     }
 
