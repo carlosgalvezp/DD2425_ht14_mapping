@@ -461,6 +461,8 @@ private:
     void decreaseCostThickMap(double x, double y)
     {
 
+
+
         Cell & cell = thick_map.getCell(x, y);
         int center_cell_i = cell.getI();
         int center_cell_j = cell.getJ();
@@ -471,8 +473,9 @@ private:
         {
             for(int j = - SIZE_LIMIT; j <= SIZE_LIMIT; j++)
             {
+                int cost = pre_calculated_costs[getIndexPosition(i + SIZE_LIMIT, j + SIZE_LIMIT, SIZE_LIMIT*2 + 1)];
                 Cell & new_cell = thick_map.getCell(i + center_cell_i, j + center_cell_j);
-                if(new_cell.getCost() > 1)
+                if(cost > 2 && new_cell.getCost() > 1)
                 {
                     thick_map.setCost(i + center_cell_i, j + center_cell_j, new_cell.getCost() - 1);
                 }
