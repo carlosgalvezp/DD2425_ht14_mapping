@@ -1,0 +1,5 @@
+<launch>
+
+  <node pkg="mapping" type="map_loader_node" name="map_loader_node" output = "screen" />
+
+</launch>

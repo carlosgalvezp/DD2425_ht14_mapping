@@ -1,7 +1,7 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include <robot_maps/cell.h>
+#include <mapping/cell.h>
 #include <vector>
 
 #define SIMPLE_UNKNOWN_AREA 50

@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.4.6)
 set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 
-project(robot_maps)
+project(mapping)
 
 find_package(catkin REQUIRED COMPONENTS roscpp std_msgs ras_utils)
 
@@ -27,3 +27,6 @@ add_executable(map_handler_node src/apps/map_handler_node.cpp ${HEADERS} ${SOURC
 add_dependencies(map_handler_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(map_handler_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 
+add_executable(map_loader_node src/apps/map_loader_node.cpp ${HEADERS} ${SOURCES})
+add_dependencies(map_loader_node ${catkin_EXPORTED_TARGETS})
+target_link_libraries(map_loader_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})

@@ -1,7 +1,7 @@
 #include <ros/ros.h>
-#include <robot_maps/map_handler.h>
+#include <mapping/map_handler.h>
 #include <ras_utils/ras_names.h>
-#include <robot_maps/map.h>
+#include <mapping/map.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <std_msgs/Bool.h>
 #include <geometry_msgs/Pose2D.h>
@@ -10,7 +10,7 @@
 #include <ras_utils/occupancy_map_utils.h>
 #include <sstream>
 
-#include <robot_maps/map_io.h>
+#include <mapping/map_io.h>
 #include <ras_utils/occupancy_map_utils.h>
 
 #include <boost/filesystem.hpp>

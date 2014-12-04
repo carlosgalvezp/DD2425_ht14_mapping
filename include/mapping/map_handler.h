@@ -7,8 +7,8 @@
 #include <ras_utils/ras_utils.h>
 #include <ras_utils/ras_sensor_utils.h>
 
-#include <robot_maps/cell.h>
-#include <robot_maps/map.h>
+#include <mapping/cell.h>
+#include <mapping/map.h>
 
 #include <math.h>
 #include <vector>

@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <package>
-  <name>robot_maps</name>
+  <name>mapping</name>
   <version>0.1.0</version>
   <description>Map functionality for the robot.</description>
   <maintainer email="mathlin@kth.se">Mathias Lindblom</maintainer>
