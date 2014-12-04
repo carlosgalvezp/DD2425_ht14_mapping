@@ -295,7 +295,7 @@ private:
                     setFree(x_pos, y_pos);
                 }
                 if(map.getCell(x_pos, y_pos).isBlocked()) {
-                    setFree(x_pos, y_pos);
+                    setFree(x_pos, y_pos, true);
                     decreaseCostThickMap(x_pos, y_pos);
                 }
             }
