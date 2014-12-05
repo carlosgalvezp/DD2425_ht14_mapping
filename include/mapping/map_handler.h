@@ -288,7 +288,7 @@ private:
     void updateFreeArea(double sensor_reading_distance, double sensor_angle, double sensor_angle_center_offset, int max_sensor_distance, double sensor_distance_from_center)
     {
         double x,y;
-        for(double sensor_reading_part_distance = 0; sensor_reading_part_distance < (sensor_reading_distance - 1) && sensor_reading_part_distance < max_sensor_distance; sensor_reading_part_distance += SENSOR_READING_PART_DISTANCE_BLOCK_SIZE)
+        for(double sensor_reading_part_distance = 0; sensor_reading_part_distance < (sensor_reading_distance - (THICK_FILLER - 1)) && sensor_reading_part_distance < max_sensor_distance; sensor_reading_part_distance += SENSOR_READING_PART_DISTANCE_BLOCK_SIZE)
         {
             getSensorReadingPos(x, y, sensor_reading_part_distance, sensor_angle, sensor_reading_part_distance + 1, sensor_distance_from_center, sensor_angle_center_offset);
             if(setFree(x, y)) {
