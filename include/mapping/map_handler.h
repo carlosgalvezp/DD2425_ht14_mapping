@@ -179,7 +179,7 @@ private:
 
         bool acceptedBlocking = false;
         if(acceptedSensorPos) {
-            acceptedBlocking = canBlock(x, y);
+            acceptedBlocking = canBlock(x, y) || sensor_reading_distance < 6.0;
              // fillFreeAroundPoint(map.getCell(x, y));
         }
 
