@@ -1,4 +1,5 @@
 #include <mapping/map_io.h>
+#include <algorithm>
 
 Map_IO::Map_IO()
 {
@@ -44,14 +45,17 @@ bool Map_IO::loadMap(const std::string &path_img,
     file.close();
 
     // ** Read image and get data as array
-    cv::Mat img = cv::imread(path_img);
-    cv::Mat img2 = img.reshape(0,1);
-    cv::imshow("IMG",img);
-    cv::waitKey();
-    v_.reserve(img2.cols);
-    memcpy(&(v_[0]), img2.data, img2.cols*sizeof(int8_t));
+    cv::Mat img = cv::imread(path_img,0); // It's important to use flag 0 (grayscale read)
 
-    map.data.resize(rows*cols);
+    map.data = std::vector<int8_t>(rows*cols,0);
+    for(std::size_t i = 0; i < img.rows; ++i)
+    {
+        for(std::size_t j = 0; j < img.cols; ++j)
+        {
+            map.data[i*cols + j] = img.at<char>(i,j);
+        }
+    }
+
     map.info.height = rows;
     map.info.width = cols;
     map.info.resolution = resolution;
