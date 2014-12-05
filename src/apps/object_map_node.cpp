@@ -2,6 +2,7 @@
 #include <ras_utils/graph/graph.h>
 #include <ras_utils/ras_names.h>
 #include <ras_utils/occupancy_map_utils.h>
+#include <ras_utils/ras_utils.h>
 #include <nav_msgs/OccupancyGrid.h>
 #include <visualization_msgs/MarkerArray.h>
 #include <visualization_msgs/Marker.h>
@@ -16,11 +17,15 @@
 #define QUEUE_SIZE      1
 #define PUBLISH_RATE    10
 
+#define MIN_OBJECT_DISTANCE 0.3 // [m]
 
 // ** Global variables and functions to be called by the SIGINT handle.
 // ** I am sorry but there is no other option!! :(
 
-    void computeObjectsPath(std::vector<Node> &objects_path);
+    void computeObjectsPath(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
+                            const visualization_msgs::MarkerArray::ConstPtr &object_msg,
+                            std::vector<Node> &objects_path);
+
     void saveObjectsPath(const std::string& path, const std::vector<Node> &objects_path);
     nav_msgs::OccupancyGrid::ConstPtr map_msg_;
     visualization_msgs::MarkerArray::ConstPtr object_msg_;
@@ -29,13 +34,17 @@
     void mapCallback(const nav_msgs::OccupancyGrid::ConstPtr &msg);
     void objectsCallback(const visualization_msgs::MarkerArray::ConstPtr &msg);
 
+    // ** Help functions
+    bool pathContainsIntermediateNodes(const Node& start, const Node &end,
+                                       const std::vector<geometry_msgs::Point> &path,
+                                       const std::vector<Node> &nodes);
 
 void mySigintHandler(int sig)
 {
     // ** Before exiting, compute TSP path and save it to disk
     std::cout <<"[ObjectMapNode] Computing TSP path for objects" << std::endl;
     std::vector<Node> objects_path;
-    computeObjectsPath(objects_path);
+    computeObjectsPath(map_msg_, object_msg_, objects_path);
     saveObjectsPath(RAS_Names::OBJECT_BEST_PATH_PATH, objects_path);
 
     // All the default sigint handler does is call shutdown()
@@ -71,7 +80,9 @@ void objectsCallback(const visualization_msgs::MarkerArray::ConstPtr &msg)
     object_msg_ = msg;
 }
 
-void computeObjectsPath(std::vector<Node> &objects_path)
+void computeObjectsPath(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
+                        const visualization_msgs::MarkerArray::ConstPtr &object_msg,
+                        std::vector<Node> &objects_path)
 {
     if(map_msg_!= 0 || object_msg_ != 0)
     {
@@ -107,7 +118,9 @@ void computeObjectsPath(std::vector<Node> &objects_path)
                 const std::vector<geometry_msgs::Point> &path =
                         RAS_Utils::occ_grid::bfs_search::getPathFromTo(*map_msg_, n1.getPosition().x_,n1.getPosition().y_,
                                                                                   n2.getPosition().x_,n2.getPosition().y_);
-                double cost  = path.size();
+
+                double cost  = pathContainsIntermediateNodes(n1, n2, path, nodes) ?
+                            std::numeric_limits<double>::infinity() : path.size();
                 Edge e(n1, n2, cost);
                 edges.push_back(e);
             }
@@ -139,4 +152,28 @@ void saveObjectsPath(const std::string &path, const std::vector<Node> &objects_p
         }
         file.close();
     }
+}
+
+bool pathContainsIntermediateNodes(const Node& start, const Node &end,
+                                   const std::vector<geometry_msgs::Point> &path,
+                                   const std::vector<Node> &nodes)
+{
+    // ** Analize the path and check whether the points are not close to other object nodes
+    for(std::size_t i = 0; i < path.size(); ++i)
+    {
+        const geometry_msgs::Point &p  = path[i];
+
+        for(std::size_t j = 0; j < nodes.size(); ++j)
+        {
+            const Node &n = nodes[j];
+            if(n.getID() != start.getID() && n.getID() != end.getID())
+            {
+                double d = RAS_Utils::euclidean_distance(n.getPosition().x_, n.getPosition().y_,
+                                                         p.x, p.y);
+                if( d < MIN_OBJECT_DISTANCE )
+                    return true;
+            }
+        }
+    }
+    return false;
 }
