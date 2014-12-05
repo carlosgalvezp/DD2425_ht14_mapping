@@ -317,14 +317,21 @@ private:
                 if(map.getCell(x_pos, y_pos).isUnknown()) {
                     setFree(x_pos, y_pos);
                 }
+
+                if(x < FREE_AREA_LIMIT / 2 && x > - FREE_AREA_LIMIT / 2 && y < FREE_AREA_LIMIT / 2 && y > - FREE_AREA_LIMIT / 2)
+                {
+                    // Needed so we never find ourselves within wall area.
+                    thick_map.setFree(x, y);
+                }
                 /*
                 if(thick_map.getCell(x_pos, y_pos).isBlocked()) {
                     setFree(x_pos, y_pos, true);
-                    decreaseCostThickMap(x_pos, y_pos);
+                    //decreaseCostThickMap(x_pos, y_pos);
                 }
                 */
             }
         }
+
     }
 
     void fillFreeAroundPoint(Cell & free_cell)
