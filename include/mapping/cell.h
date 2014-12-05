@@ -3,6 +3,7 @@
 
 #include <string>
 
+#define FREE_STANDARD_VALUE 10
 
 class Cell {
 public:
@@ -11,7 +12,7 @@ public:
         UNKNOWN, FREE, BLOCKED
     };
 
-    Cell() : cost_(1){}
+    Cell() : cost_(FREE_STANDARD_VALUE){}
 
     Cell(int i, int j, Type cellValue, int cost) : cost_(cost), i(i), j(j), type(cellValue){}
 

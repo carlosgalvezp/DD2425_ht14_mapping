@@ -431,10 +431,10 @@ private:
         auto costCalculator = [](int i, int j, int size)
         {
             double dist = sqrt(pow(i, 2) + pow(j, 2));
-            int value = (double)size - dist + 0.5;
-            if(value < 1)
+            int value = (double)size - dist + 0.5 + (double)FREE_STANDARD_VALUE;
+            if(value < FREE_STANDARD_VALUE)
             {
-                value = 1;
+                value = FREE_STANDARD_VALUE;
             }
 
             return value;
