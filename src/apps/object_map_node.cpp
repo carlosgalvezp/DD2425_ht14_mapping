@@ -23,16 +23,16 @@
 // ** I am sorry but there is no other option!! :(
 
     void computeObjectsPath(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
-                            const visualization_msgs::MarkerArray::ConstPtr &object_msg,
+                            const std::vector<geometry_msgs::Point> &object_vector,
                             std::vector<Node> &objects_path);
 
     void saveObjectsPath(const std::string& path, const std::vector<Node> &objects_path);
     nav_msgs::OccupancyGrid::ConstPtr map_msg_;
-    visualization_msgs::MarkerArray::ConstPtr object_msg_;
+    std::vector<geometry_msgs::Point> object_vector_;
 
     // ** Callbacks
     void mapCallback(const nav_msgs::OccupancyGrid::ConstPtr &msg);
-    void objectsCallback(const visualization_msgs::MarkerArray::ConstPtr &msg);
+    void objectsCallback(const geometry_msgs::Point::ConstPtr &msg);
 
     // ** Help functions
     bool pathContainsIntermediateNodes(const Node& start, const Node &end,
@@ -44,12 +44,17 @@ void mySigintHandler(int sig)
     // ** Before exiting, compute TSP path and save it to disk
     std::cout <<"[ObjectMapNode] Computing TSP path for objects" << std::endl;
     std::vector<Node> objects_path;
-    computeObjectsPath(map_msg_, object_msg_, objects_path);
+    computeObjectsPath(map_msg_, object_vector_, objects_path);
     saveObjectsPath(RAS_Names::OBJECT_BEST_PATH_PATH, objects_path);
 
     // All the default sigint handler does is call shutdown()
     ros::shutdown();
 }
+
+void mySigTermHandler(int sig)
+{
+}
+
 int main(int argc, char **argv) {    
     ros::init(argc, argv, "map_loader_node");
     ros::NodeHandle nh;
@@ -57,11 +62,12 @@ int main(int argc, char **argv) {
     // ** Subscribers
     ros::Subscriber map_sub_, object_position_sub_;
     map_sub_ = nh.subscribe(TOPIC_MAP_OCC_GRID_THICK, QUEUE_SIZE, &mapCallback);
-    object_position_sub_ = nh.subscribe(TOPIC_MARKERS, QUEUE_SIZE, &objectsCallback);
+    object_position_sub_ = nh.subscribe(TOPIC_ROBOT_OBJECT_POSITION, QUEUE_SIZE, &objectsCallback);
 
     // Override the default ros sigint handler.
     // This must be set after the first NodeHandle is created.
     signal(SIGINT, mySigintHandler);
+    signal(SIGTERM, mySigTermHandler); // Even if ROS wants to kill me, it wont be able to :)
 
     ros::spin();
 
@@ -75,37 +81,33 @@ void mapCallback(const nav_msgs::OccupancyGrid::ConstPtr &msg)
     map_msg_ = msg;
 }
 
-void objectsCallback(const visualization_msgs::MarkerArray::ConstPtr &msg)
+void objectsCallback(const geometry_msgs::Point::ConstPtr &msg)
 {
-    object_msg_ = msg;
+    object_vector_.push_back(*msg);
 }
 
 void computeObjectsPath(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
-                        const visualization_msgs::MarkerArray::ConstPtr &object_msg,
+                        const std::vector<geometry_msgs::Point> &object_vector,
                         std::vector<Node> &objects_path)
-{
-    if(map_msg_!= 0 || object_msg_ != 0)
+{    
+    if(map_msg!= 0 || object_vector.size() != 0)
     {
+
         std::cout << "============== COMPUTING OBJECT PATH================"<<std::endl;
 
         std::vector<Node> nodes;
         std::vector<Edge> edges;
-        nodes.push_back(Node(0,0,0)); // Starting position
+        nodes.push_back(Node(0.0,0.0,0)); // Starting position
 
         // ** Get nodes
-        for(std::size_t i = 0; object_msg_->markers.size(); ++i)
+        for(std::size_t i = 0; i < object_vector.size(); ++i)
         {
-            const visualization_msgs::Marker &marker = object_msg_->markers[i];
-            if(marker.ns == RVIZ_MARKER_NS_OBJECT && marker.type == visualization_msgs::Marker::CUBE)
-            {
-                Node n(marker.pose.position.x, marker.pose.position.y,nodes.size());
-                nodes.push_back(n);
-            }
+            const geometry_msgs::Point &p = object_vector[i];
+            Node n(p.x, p.y,nodes.size());
+            nodes.push_back(n);
         }
-
         // Add the start node again, so that we come back after fetching objects
-        nodes.push_back(Node(0,0,nodes.size()));
-        std::cout << "============== NODES SIZE: " << nodes.size()<<"================"<<std::endl;
+        nodes.push_back(Node(0.0,0.0,nodes.size()));
 
         // ** Get edges and cost
         for(std::size_t i = 0; i < nodes.size(); ++i)
@@ -116,13 +118,13 @@ void computeObjectsPath(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
                 const Node &n2 = nodes[j];
 
                 const std::vector<geometry_msgs::Point> &path =
-                        RAS_Utils::occ_grid::bfs_search::getPathFromTo(*map_msg_, n1.getPosition().x_,n1.getPosition().y_,
-                                                                                  n2.getPosition().x_,n2.getPosition().y_);
+                        RAS_Utils::occ_grid::bfs_search::getPathFromTo(*map_msg, n1.getPosition().x_,n1.getPosition().y_,
+                                                                                 n2.getPosition().x_,n2.getPosition().y_);
 
-                double cost  = pathContainsIntermediateNodes(n1, n2, path, nodes) ?
-                            std::numeric_limits<double>::infinity() : path.size();
+                double cost  = path.size() != 0? path.size() : std::numeric_limits<double>::infinity();
                 Edge e(n1, n2, cost);
                 edges.push_back(e);
+                std::cout <<"EDGE BETWEEN "<<n1.getID()<<" and "<<n2.getID() <<" with cost "<<cost<<std::endl;
             }
         }
 
