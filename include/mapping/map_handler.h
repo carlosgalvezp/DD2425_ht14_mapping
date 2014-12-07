@@ -77,7 +77,7 @@ public:
            adc_data->ch2);
 
         // Update where we detect walls based on sensor readings
-        //updateOccupiedAreaLongSensor(sd.front_, true);
+//        updateOccupiedAreaLongSensor(sd.front_+12, true);
        // updateOccupiedAreaLongSensor(dist_back_large_range, false);
 
         updateOccupiedAreaShortSensor(sd.right_front_, true, true);
