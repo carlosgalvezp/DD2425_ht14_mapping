@@ -9,6 +9,7 @@
 #include <ras_arduino_msgs/ADConverter.h>
 #include <ras_utils/occupancy_map_utils.h>
 #include <sstream>
+#include <std_msgs/Int64MultiArray.h>
 
 #include <mapping/map_io.h>
 #include <ras_utils/occupancy_map_utils.h>
@@ -33,10 +34,10 @@ public:
 
     MapHandlerNode() : mapHandler(Map(MAP_HEIGHT, MAP_WIDTH, MAP_CELL_SIZE))
     {
-
         // Publisher
         map_pub_ = n.advertise<nav_msgs::OccupancyGrid>(TOPIC_MAP_OCC_GRID, QUEUE_SIZE);
         map_pub_thick_ = n.advertise<nav_msgs::OccupancyGrid>(TOPIC_MAP_OCC_GRID_THICK, QUEUE_SIZE);
+        map_pub_cost_ = n.advertise<std_msgs::Int64MultiArray>(TOPIC_MAP_COST, QUEUE_SIZE);
         save_map_pub_ = n.advertise<std_msgs::Bool>(TOPIC_MAP_SAVE,QUEUE_SIZE);
         // Subscriber
         odo_sub_ = n.subscribe(TOPIC_ODOMETRY, 1,  &MapHandlerNode::odoCallback, this);
@@ -54,15 +55,17 @@ public:
         ros::Rate loop_rate(PUBLISH_RATE);
         while(ros::ok())
         {
-            if(odo_data_ != nullptr && adc_data_ != nullptr) {
+            if(odo_data_ != nullptr && adc_data_ != nullptr && new_adc_data_recieved_) {
+
+                new_adc_data_recieved_ = false;  // needed for removing duplicate data
                 mapHandler.update(odo_data_, adc_data_);
 
                 {
-
-
                     // ** Publish
                     nav_msgs::OccupancyGrid msg_raw, msg_thick;
+                    std_msgs::Int64MultiArray msg_cost;
                     // Raw map
+
                     msg_raw.header.frame_id = COORD_FRAME_WORLD;
                     msg_raw.info.origin.position.x = - (mapHandler.getWidth() / 100) / 2.0;
                     msg_raw.info.origin.position.y = - (mapHandler.getHeight() / 100) / 2.0;
@@ -71,6 +74,7 @@ public:
                     msg_raw.info.width = mapHandler.getWidth();
                     msg_raw.info.resolution = mapHandler.getCellSize() / 100.0;
                     map_pub_.publish(msg_raw);
+
 
                     // Thick map
                     msg_thick.header.frame_id = COORD_FRAME_WORLD;
@@ -81,6 +85,10 @@ public:
                     msg_thick.info.width = mapHandler.getWidth();
                     msg_thick.info.resolution = mapHandler.getCellSize() / 100.0;
                     map_pub_thick_.publish(msg_thick);
+
+                    // Cost Map
+                    msg_cost.data = (&mapHandler.getCostMap())[0];
+                    map_pub_cost_.publish(msg_cost);
 
                     // ** Save the map if necessary
                     ros::WallTime current_t = ros::WallTime::now();
@@ -96,10 +104,8 @@ public:
                         ++map_counter_;
                         last_saving_time_ = current_t;
                     }
-
                 }
             }
-
 
             // ** Sleep
             ros::spinOnce();
@@ -112,6 +118,7 @@ private:
     // ** Publishers and subscribers
     ros::Publisher map_pub_;
     ros::Publisher map_pub_thick_;
+    ros::Publisher map_pub_cost_;
     ros::Publisher save_map_pub_;
 
     ros::Subscriber odo_sub_;
@@ -133,9 +140,13 @@ private:
         odo_data_ = msg;
     }
 
+    bool new_adc_data_recieved_;
+
     void adcCallback(const ras_arduino_msgs::ADConverter::ConstPtr& msg)
     {
+        new_adc_data_recieved_ = true; // needed for removing duplicate data
         adc_data_ = msg;
+
     }
 
 };

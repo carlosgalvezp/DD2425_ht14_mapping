@@ -3,8 +3,6 @@
 
 #include <string>
 
-#define FREE_STANDARD_VALUE 10
-
 class Cell {
 public:
 
@@ -12,9 +10,9 @@ public:
         UNKNOWN, FREE, BLOCKED
     };
 
-    Cell() : cost_(FREE_STANDARD_VALUE){}
+    Cell(){}
 
-    Cell(int i, int j, Type cellValue, int cost) : cost_(cost), i(i), j(j), type(cellValue){}
+    Cell(int i, int j, Type cellValue) : i(i), j(j), type(cellValue){}
 
     virtual bool isObject() {
         return false;
@@ -59,22 +57,16 @@ public:
         return j;
     }
 
-    int getCost()
-    {
-        return cost_;
-    }
-
 private:
     Type type;
     int i;
     int j;
-    int cost_;
 };
 
 
 class ObjectCell : public Cell {
 public:
-    ObjectCell(int i, int j, std::string object_name, int cost) : Cell(i, j, Cell::BLOCKED, cost), object_name_(object_name) {}
+    ObjectCell(int i, int j, std::string object_name) : Cell(i, j, Cell::BLOCKED), object_name_(object_name) {}
 
     bool isObject() {
         return true;
