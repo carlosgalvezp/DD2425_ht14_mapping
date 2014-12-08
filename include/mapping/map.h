@@ -8,7 +8,7 @@
 #define SIMPLE_FREE_AREA    0
 #define SIMPLE_BLOCKED_AREA 100
 
-#define THICK_WALL_COUNTER_LIMIT 7
+#define THICK_WALL_COUNTER_LIMIT 5
 #define THICK_WALL_SIZE 10
 
 #define COST_MAP_LIMIT                  20
