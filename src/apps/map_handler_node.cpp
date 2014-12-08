@@ -58,10 +58,12 @@ public:
         ros::Rate loop_rate(PUBLISH_RATE);
         while(ros::ok())
         {
-            if(odo_data_ != nullptr && adc_data_ != nullptr && new_adc_data_recieved_ && las_data_ != nullptr) {
+            if(odo_data_ != nullptr && adc_data_ != nullptr && las_data_ != nullptr){
 
+
+                mapHandler.update(odo_data_, adc_data_, las_data_, new_adc_data_recieved_, new_laser_data_recieved_);
+                new_laser_data_recieved_= false;
                 new_adc_data_recieved_ = false;  // needed for removing duplicate data
-                mapHandler.update(odo_data_, adc_data_, las_data_);
 
                 {
                     // ** Publish
@@ -154,8 +156,11 @@ private:
 
     }
 
+    bool new_laser_data_recieved_;
+
     void laserCallback(const ras_srv_msgs::LaserScanner::ConstPtr& msg)
     {
+        new_laser_data_recieved_ = true;
         las_data_ = msg;
     }
 

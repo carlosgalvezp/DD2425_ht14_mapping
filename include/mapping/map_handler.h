@@ -55,7 +55,9 @@ public:
 
     void update(const geometry_msgs::Pose2D::ConstPtr &odo_data,
                 const ras_arduino_msgs::ADConverter::ConstPtr &adc_data,
-                const ras_srv_msgs::LaserScanner::ConstPtr &las_data)
+                const ras_srv_msgs::LaserScanner::ConstPtr &las_data,
+                bool new_adc_recieved,
+                bool new_laser_recieved)
     {
 
         // Retrieve the data
@@ -78,22 +80,25 @@ public:
        // updateOccupiedAreaLongSensor(dist_back_large_range, false);
 
 
+        if(new_adc_recieved){
+            updateOccupiedAreaShortSensor(sd.right_front_, true, true);
+            updateOccupiedAreaShortSensor(sd.right_back_, true, false);
+            updateOccupiedAreaShortSensor(sd.left_front_, false, true);
+            updateOccupiedAreaShortSensor(sd.left_back_, false, false);
 
-        updateOccupiedAreaShortSensor(sd.right_front_, true, true);
-        updateOccupiedAreaShortSensor(sd.right_back_, true, false);
-        updateOccupiedAreaShortSensor(sd.left_front_, false, true);
-        updateOccupiedAreaShortSensor(sd.left_back_, false, false);
 
+            updateFreeAreaUsingRobotPos();
 
-        updateFreeAreaUsingRobotPos();
+            updateFreeAreaShortSensor(sd.right_front_, true, true);
+            updateFreeAreaShortSensor(sd.right_back_, true, false);
+            updateFreeAreaShortSensor(sd.left_front_, false, true);
+            updateFreeAreaShortSensor(sd.left_back_, false, false);
+        }
 
-        updateFreeAreaShortSensor(sd.right_front_, true, true);
-        updateFreeAreaShortSensor(sd.right_back_, true, false);
-        updateFreeAreaShortSensor(sd.left_front_, false, true);
-        updateFreeAreaShortSensor(sd.left_back_, false, false);
-
-        updateAreaLaser(*las_data, false);
-        updateAreaLaser(*las_data, true);
+        if(new_laser_recieved){
+            updateAreaLaser(*las_data, false);
+            updateAreaLaser(*las_data, true);
+        }
 
        // updateFreeAreaLongSensor(sd.front_, true);
 
