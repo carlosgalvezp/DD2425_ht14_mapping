@@ -133,7 +133,7 @@ void computeObjectsPath(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
                         RAS_Utils::occ_grid::bfs_search::getPathFromTo(*map_msg, *map_cost_msg,  n1.getPosition().x_,n1.getPosition().y_,
                                                                                                 n2.getPosition().x_,n2.getPosition().y_);
 
-                double cost  = path.size() != 0? path.size() : std::numeric_limits<double>::infinity();
+                double cost  = path.size() != 0? path.size() : 100000;
                 Edge e(n1, n2, cost);
                 edges.push_back(e);
                 std::cout <<"EDGE BETWEEN "<<n1.getID()<<" and "<<n2.getID() <<" with cost "<<cost<<std::endl;

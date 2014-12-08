@@ -1,12 +1,15 @@
 cmake_minimum_required(VERSION 2.4.6)
 set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
+if(COMMAND cmake_policy)
+      cmake_policy(SET CMP0003 NEW)
+    endif(COMMAND cmake_policy)
 
 project(mapping)
 
-find_package(catkin REQUIRED COMPONENTS roscpp std_msgs ras_utils)
+find_package(catkin REQUIRED COMPONENTS roscpp std_msgs ras_utils ras_srv_msgs)
 
 catkin_package(
-	CATKIN_DEPENDS roscpp std_msgs
+        CATKIN_DEPENDS roscpp std_msgs ras_srv_msgs
 	INCLUDE_DIRS include)
 
 include_directories(
