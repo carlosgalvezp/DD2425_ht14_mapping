@@ -23,16 +23,19 @@
 // ** I am sorry but there is no other option!! :(
 
     void computeObjectsPath(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
+                            const std_msgs::Int64MultiArray::ConstPtr &map_cost_msg,
                             const std::vector<geometry_msgs::Point> &object_vector,
                             std::vector<Node> &objects_path);
 
     void saveObjectsPath(const std::string& path, const std::vector<Node> &objects_path);
     nav_msgs::OccupancyGrid::ConstPtr map_msg_;
+    std_msgs::Int64MultiArray::ConstPtr map_cost_msg_;
     std::vector<geometry_msgs::Point> object_vector_;
 
     // ** Callbacks
     void mapCallback(const nav_msgs::OccupancyGrid::ConstPtr &msg);
     void objectsCallback(const geometry_msgs::Point::ConstPtr &msg);
+    void mapCostCallback(const std_msgs::Int64MultiArray::ConstPtr &msg);
 
     // ** Help functions
     bool pathContainsIntermediateNodes(const Node& start, const Node &end,
@@ -44,7 +47,7 @@ void mySigintHandler(int sig)
     // ** Before exiting, compute TSP path and save it to disk
     std::cout <<"[ObjectMapNode] Computing TSP path for objects" << std::endl;
     std::vector<Node> objects_path;
-    computeObjectsPath(map_msg_, object_vector_, objects_path);
+    computeObjectsPath(map_msg_, map_cost_msg_, object_vector_, objects_path);
     saveObjectsPath(RAS_Names::OBJECT_BEST_PATH_PATH, objects_path);
 
     // All the default sigint handler does is call shutdown()
@@ -60,9 +63,11 @@ int main(int argc, char **argv) {
     ros::NodeHandle nh;
 
     // ** Subscribers
-    ros::Subscriber map_sub_, object_position_sub_;
+    ros::Subscriber map_sub_, object_position_sub_, map_cost_sub_;
     map_sub_ = nh.subscribe(TOPIC_MAP_OCC_GRID_THICK, QUEUE_SIZE, &mapCallback);
+    map_cost_sub_ = nh.subscribe(TOPIC_MAP_COST, QUEUE_SIZE, &mapCostCallback);
     object_position_sub_ = nh.subscribe(TOPIC_ROBOT_OBJECT_POSITION, QUEUE_SIZE, &objectsCallback);
+
 
     // Override the default ros sigint handler.
     // This must be set after the first NodeHandle is created.
@@ -86,7 +91,14 @@ void objectsCallback(const geometry_msgs::Point::ConstPtr &msg)
     object_vector_.push_back(*msg);
 }
 
+void mapCostCallback(const std_msgs::Int64MultiArray::ConstPtr &msg)
+{
+    map_cost_msg_ = msg;
+}
+
+
 void computeObjectsPath(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
+                        const std_msgs::Int64MultiArray::ConstPtr &map_cost_msg,
                         const std::vector<geometry_msgs::Point> &object_vector,
                         std::vector<Node> &objects_path)
 {    
@@ -118,8 +130,8 @@ void computeObjectsPath(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
                 const Node &n2 = nodes[j];
 
                 const std::vector<geometry_msgs::Point> &path =
-                        RAS_Utils::occ_grid::bfs_search::getPathFromTo(*map_msg, n1.getPosition().x_,n1.getPosition().y_,
-                                                                                 n2.getPosition().x_,n2.getPosition().y_);
+                        RAS_Utils::occ_grid::bfs_search::getPathFromTo(*map_msg, *map_cost_msg,  n1.getPosition().x_,n1.getPosition().y_,
+                                                                                                n2.getPosition().x_,n2.getPosition().y_);
 
                 double cost  = path.size() != 0? path.size() : 100000;
                 Edge e(n1, n2, cost);
