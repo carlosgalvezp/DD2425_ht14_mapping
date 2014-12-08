@@ -96,7 +96,7 @@ public:
         }
 
         if(new_laser_recieved){
-            updateAreaLaser(*las_data, false);
+          //  updateAreaLaser(*las_data, false);
             updateAreaLaser(*las_data, true);
         }
 
