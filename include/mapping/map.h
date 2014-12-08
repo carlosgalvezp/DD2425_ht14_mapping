@@ -291,6 +291,7 @@ private:
                         } else if(simple_map_vector_[index] != SIMPLE_UNKNOWN_AREA)
                         {
                             // The "normal" map is not unknown here, so set it to known for the thick map
+                            simple_thick_map_vector_[index] = SIMPLE_FREE_AREA;
                         }
                     }
                 }
