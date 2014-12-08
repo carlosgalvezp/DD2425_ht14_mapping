@@ -10,6 +10,7 @@
 #include <ras_utils/occupancy_map_utils.h>
 #include <sstream>
 #include <std_msgs/Int64MultiArray.h>
+#include <ras_srv_msgs/LaserScanner.h>
 
 #include <mapping/map_io.h>
 #include <ras_utils/occupancy_map_utils.h>
@@ -42,6 +43,8 @@ public:
         // Subscriber
         odo_sub_ = n.subscribe(TOPIC_ODOMETRY, 1,  &MapHandlerNode::odoCallback, this);
         adc_sub_ = n.subscribe(TOPIC_ARDUINO_ADC, 1,  &MapHandlerNode::adcCallback, this);
+        las_sub_ = n.subscribe(TOPIC_OBSTACLE_LASER_MAP, 1,  &MapHandlerNode::laserCallback, this);
+
 
         last_saving_time_ = ros::WallTime::now();
         map_counter_ = 0;
@@ -55,10 +58,10 @@ public:
         ros::Rate loop_rate(PUBLISH_RATE);
         while(ros::ok())
         {
-            if(odo_data_ != nullptr && adc_data_ != nullptr && new_adc_data_recieved_) {
+            if(odo_data_ != nullptr && adc_data_ != nullptr && new_adc_data_recieved_ && las_data_ != nullptr) {
 
                 new_adc_data_recieved_ = false;  // needed for removing duplicate data
-                mapHandler.update(odo_data_, adc_data_);
+                mapHandler.update(odo_data_, adc_data_, las_data_);
 
                 {
                     // ** Publish
@@ -123,10 +126,12 @@ private:
 
     ros::Subscriber odo_sub_;
     ros::Subscriber adc_sub_;
+    ros::Subscriber las_sub_;
 
     // ** Recieved messages from subscribers
     geometry_msgs::Pose2D::ConstPtr odo_data_;
     ras_arduino_msgs::ADConverter::ConstPtr adc_data_;
+    ras_srv_msgs::LaserScanner::ConstPtr las_data_;
 
     // ** The actual map
     MapHandler mapHandler;
@@ -147,6 +152,11 @@ private:
         new_adc_data_recieved_ = true; // needed for removing duplicate data
         adc_data_ = msg;
 
+    }
+
+    void laserCallback(const ras_srv_msgs::LaserScanner::ConstPtr& msg)
+    {
+        las_data_ = msg;
     }
 
 };

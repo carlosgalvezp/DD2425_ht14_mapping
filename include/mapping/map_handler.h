@@ -3,6 +3,7 @@
 
 #include <geometry_msgs/Pose2D.h>
 #include <ras_arduino_msgs/ADConverter.h>
+#include <ras_srv_msgs/LaserScanner.h>
 
 #include <ras_utils/ras_utils.h>
 #include <ras_utils/ras_sensor_utils.h>
@@ -52,7 +53,9 @@ public:
     {
     }
 
-    void update(const geometry_msgs::Pose2D::ConstPtr &odo_data, const ras_arduino_msgs::ADConverter::ConstPtr &adc_data)
+    void update(const geometry_msgs::Pose2D::ConstPtr &odo_data,
+                const ras_arduino_msgs::ADConverter::ConstPtr &adc_data,
+                const ras_srv_msgs::LaserScanner::ConstPtr &las_data)
     {
 
         // Retrieve the data
@@ -89,6 +92,8 @@ public:
         updateFreeAreaShortSensor(sd.left_front_, false, true);
         updateFreeAreaShortSensor(sd.left_back_, false, false);
 
+        updateAreaLaser(*las_data, false);
+        updateAreaLaser(*las_data, true);
 
        // updateFreeAreaLongSensor(sd.front_, true);
 
@@ -156,13 +161,42 @@ private:
     typedef std::vector< std::vector<Cell> > CellMatrix;
     typedef std::vector<Cell> CellVector;
 
+
+    void updateAreaLaser(const ras_srv_msgs::LaserScanner & laser_scanner, bool paint_wall)
+    {
+        for(int i = 0; i < laser_scanner.scan.size(); i++)
+        {
+            const ras_srv_msgs::LaserLine & line = laser_scanner.scan[i];
+            const geometry_msgs::Point& from = line.from;
+            const geometry_msgs::Point& to = line.to;
+            bool is_wall = line.is_wall;
+
+            if(is_wall && paint_wall || !is_wall && !paint_wall)
+            {
+                // Only calculate if we currently want to paint wall and it actually is wall or vice versa
+
+                double line_dist = getPointDistance(from.x, from.y, to.x, to.y);
+                double laser_dist_from_center = getPointDistance(robot_x_pos_, robot_y_pos_, from.x, from.y);
+                double laser_angle_center_offset = getAngleFromPoints(robot_x_pos_, robot_y_pos_, from.x, from.y) - robot_angle_;
+                if(is_wall)
+                {
+                    updateOccupiedArea(line_dist, 0, laser_angle_center_offset, 1000, laser_dist_from_center);
+
+                } else if(!is_wall)
+                {
+                     updateFreeArea(line_dist, 0, laser_angle_center_offset, 1000 , laser_dist_from_center);
+                }
+            }
+        }
+    }
+
     void updateOccupiedAreaLongSensor(double sensor_reading_distance, bool front)
     {
         double sensor_angle = (front) ? 0 : M_PI;
         double sensor_angle_center_offset = (front) ? LONG_FRONT_SENSOR_ANGLE_FROM_FORWARD : M_PI + LONG_FRONT_SENSOR_ANGLE_FROM_FORWARD;
         PrevValue & prev_value = getPrevValueLongSensors(front);
 
-        updateOccupiedArea(prev_value, sensor_reading_distance, sensor_angle, sensor_angle_center_offset, MAX_LONG_SENSOR_DISTANCE, LONG_SENSOR_DISTANCE_FROM_CENTER);
+        updateOccupiedArea(sensor_reading_distance, sensor_angle, sensor_angle_center_offset, MAX_LONG_SENSOR_DISTANCE, LONG_SENSOR_DISTANCE_FROM_CENTER);
     }
 
     void updateOccupiedAreaShortSensor(double sensor_reading_distance, bool right_side, bool front)
@@ -171,13 +205,12 @@ private:
         double sensor_angle_center_offset = getShortSensorAngleCenterOffset(right_side, front);
         PrevValue & prev_value = getPrevValueShortSensors(right_side, front);
 
-        updateOccupiedArea(prev_value, sensor_reading_distance, sensor_angle, sensor_angle_center_offset, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER);
+        updateOccupiedArea(sensor_reading_distance, sensor_angle, sensor_angle_center_offset, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER);
     }
 
-    void updateOccupiedArea(PrevValue & prev_value, double sensor_reading_distance, double sensor_angle, double sensor_angle_center_offset, int max_sensor_distance, double sensor_distance_from_center)
+    void updateOccupiedArea(double sensor_reading_distance, double sensor_angle, double sensor_angle_center_offset, int max_sensor_distance, double sensor_distance_from_center)
     {
 
-        bool acceptedBlocking = false;
 
         double x, y;
         bool acceptedSensorPos = getSensorReadingPos(x, y, sensor_reading_distance, sensor_angle, max_sensor_distance, sensor_distance_from_center, sensor_angle_center_offset);
