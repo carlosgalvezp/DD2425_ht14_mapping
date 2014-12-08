@@ -1,5 +1,11 @@
 <launch>
 
+<!-- IR sensor filtering -->
+  <node pkg="sensor_converter" type="ir_filtering_node" name="ir_filtering_node" output = "screen" />
+
+<!-- Mapping -->
   <node pkg="mapping" type="map_handler_node" name="map_handler_node" output = "screen" />
 
+<!-- TSP solver -->
+  <node pkg="mapping" type="object_map_node" name="object_map_node" output = "screen" />
 </launch>
