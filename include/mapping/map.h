@@ -12,7 +12,7 @@
 #define THICK_WALL_SIZE 10
 
 #define COST_MAP_LIMIT                  20
-#define COST_MAP_DEFAULT                1
+#define COST_MAP_DEFAULT                100
 #define COST_MAP_EXPO_STATIC_INCREASER  10.0    // Lowest possible value to be used with expo. Makes the cost map more distinct, less changing of path
 #define COST_MAP_EXPO_VALUE             1.5     // The expo value for cost calculation
 
@@ -279,12 +279,18 @@ private:
                     thick_wall_counter_[index] += sign;
                     if(thick_wall_counter_[index] >= THICK_WALL_COUNTER_LIMIT)
                     {
+                        // Counter reached, fill with wall
                         simple_thick_map_vector_[index] = SIMPLE_BLOCKED_AREA;
                     } else
                     {
+                        // It should not be willed with wall just yet
                         if(simple_thick_map_vector_[index] == SIMPLE_BLOCKED_AREA)
                         {
+                            //IF it was filled, change to not filled
                             simple_thick_map_vector_[index] = SIMPLE_FREE_AREA;
+                        } else if(simple_map_vector_[index] != SIMPLE_UNKNOWN_AREA)
+                        {
+                            // The "normal" map is not unknown here, so set it to known for the thick map
                         }
                     }
                 }
