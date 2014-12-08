@@ -167,17 +167,19 @@ private:
         for(int i = 0; i < laser_scanner.scan.size(); i++)
         {
             const ras_srv_msgs::LaserLine & line = laser_scanner.scan[i];
-            const geometry_msgs::Point& from = line.from;
-            const geometry_msgs::Point& to = line.to;
+            double from_x = line.from.x * METRIC_CONVERTER;
+            double from_y = line.from.y * METRIC_CONVERTER;
+            double to_x = line.to.x * METRIC_CONVERTER;
+            double to_y = line.to.y * METRIC_CONVERTER;
             bool is_wall = line.is_wall;
 
             if(is_wall && paint_wall || !is_wall && !paint_wall)
             {
                 // Only calculate if we currently want to paint wall and it actually is wall or vice versa
 
-                double line_dist = getPointDistance(from.x, from.y, to.x, to.y);
-                double laser_dist_from_center = getPointDistance(robot_x_pos_, robot_y_pos_, from.x, from.y);
-                double laser_angle_center_offset = getAngleFromPoints(robot_x_pos_, robot_y_pos_, from.x, from.y) - robot_angle_;
+                double line_dist = getPointDistance(from_x , from_y, to_x, to_y);
+                double laser_dist_from_center = getPointDistance(robot_x_pos_, robot_y_pos_, from_x, from_y);
+                double laser_angle_center_offset = getAngleFromPoints(robot_x_pos_, robot_y_pos_, from_x, from_y) - robot_angle_;
                 if(is_wall)
                 {
                     updateOccupiedArea(line_dist, 0, laser_angle_center_offset, 1000, laser_dist_from_center);
