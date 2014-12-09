@@ -51,9 +51,10 @@ public:
         map_counter_ = 0;
         // Reset map directory
 
+        /*
         boost::filesystem::remove_all(RAS_Names::MAP_ROOT_PATH); // This also removes the /raw/ folder
         boost::filesystem::create_directory(RAS_Names::MAP_ROOT_PATH); // Re-create it
-
+*/
     }
 
     void run()
@@ -62,7 +63,6 @@ public:
         while(ros::ok())
         {
             if(odo_data_ != nullptr && adc_data_ != nullptr){
-
 
                 mapHandler.update(odo_data_, adc_data_, las_data_, new_adc_data_recieved_, new_laser_data_recieved_);
                 new_laser_data_recieved_= false;
@@ -99,6 +99,7 @@ public:
                     map_pub_cost_.publish(msg_cost);
 
 
+                    /*
                     // ** Save the map if necessary
                     ros::WallTime current_t = ros::WallTime::now();
                     if( (current_t.toSec() - last_saving_time_.toSec()) > TIME_SAVE_MAP)
@@ -113,6 +114,7 @@ public:
                         ++map_counter_;
                         last_saving_time_ = current_t;
                     }
+                    */
 
                 }
             }
@@ -163,7 +165,6 @@ private:
 //    }
     void adcCallback(const ras_srv_msgs::IRDataConstPtr& msg)
     {
-        std::cout << "RECEIVED ADC "<<msg->front<<std::endl;
         new_adc_data_recieved_ = true; // needed for removing duplicate data
         adc_data_ = msg;
     }

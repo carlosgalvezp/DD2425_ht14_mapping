@@ -37,6 +37,8 @@
 
 #define SENSOR_FREE_AREA_OFFSET_FROM_WALL 4 // To make sure we do not overwrite blocked cells right after setting them
 
+#define MAX_SENSOR_WALL_TO_FREE_PER_ITERATION 1
+
 class MapHandler {
 public:
 
@@ -89,7 +91,7 @@ public:
             updateOccupiedAreaShortSensor(sd.left_back_, false, false);
 
 
-            updateFreeAreaUsingRobotPos();
+
 
             updateFreeAreaShortSensor(sd.right_front_, true, true);
             updateFreeAreaShortSensor(sd.right_back_, true, false);
@@ -99,12 +101,15 @@ public:
 
             updateFreeAreaBetweenSensors(sd.right_front_, sd.right_back_, true);
             updateFreeAreaBetweenSensors(sd.left_front_, sd.left_back_, false);
+
         }
 
         if(new_laser_recieved){
           //  updateAreaLaser(*las_data, false);
             updateAreaLaser(*las_data, true);
         }
+
+        updateFreeAreaUsingRobotPos();
 
        // updateFreeAreaLongSensor(sd.front_, true);
 
@@ -309,10 +314,16 @@ private:
     void updateFreeArea(double sensor_reading_distance, double sensor_angle, double sensor_angle_center_offset, int max_sensor_distance, double sensor_distance_from_center)
     {
         double x,y;
+        int write_over_wall_counter = 0;
         for(double sensor_reading_part_distance = 0; sensor_reading_part_distance < (sensor_reading_distance - SENSOR_FREE_AREA_OFFSET_FROM_WALL) && sensor_reading_part_distance < max_sensor_distance; sensor_reading_part_distance += SENSOR_READING_PART_DISTANCE_BLOCK_SIZE)
         {
             getSensorReadingPos(x, y, sensor_reading_part_distance, sensor_angle, sensor_reading_part_distance + 1, sensor_distance_from_center, sensor_angle_center_offset);
-            bool was_changed_to_free = map_.setFreeIfNotFreeAllready(x, y);
+            if(map_.getCell(x,y).isBlocked() && write_over_wall_counter < MAX_SENSOR_WALL_TO_FREE_PER_ITERATION){
+                write_over_wall_counter++;
+                map_.setFreeIfNotFreeAllready(x, y);
+            } else {
+                map_.setFreeIfUnknown(x, y);
+            }
         }
     }
 
@@ -334,6 +345,7 @@ private:
                 x_pos = robot_x_pos_ + x;
                 y_pos = robot_y_pos_ + y;
                 map_.setFreeIfNotFreeAllready(x_pos, y_pos);
+                map_.setThickTempToWall(x_pos, y_pos);
             }
         }
     }
@@ -484,20 +496,15 @@ private:
         double smallest_y = polygon[0].y;
         double biggest_x = polygon[0].x;
         double biggest_y = polygon[0].y;
-        ROS_INFO("New Value %d", right_side);
+
         for(Point poly_point : polygon)
         {
-
-            ROS_INFO("%f.3 :: %f.3" , poly_point.x, poly_point.y);
-
             smallest_x = std::min(smallest_x, poly_point.x);
             smallest_y = std::min(smallest_y, poly_point.y);
             biggest_x = std::max(biggest_x, poly_point.x);
             biggest_y = std::max(biggest_y, poly_point.y);
             map_.setFreeIfUnknown(poly_point.x, poly_point.y);
         }
-
-        ROS_INFO("%f.3 :: %f.3 :: %f.3 :: %f.3" , smallest_x, biggest_x, smallest_y, biggest_y);
 
 
 

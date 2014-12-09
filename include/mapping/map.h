@@ -12,8 +12,8 @@
 #define THICK_WALL_SIZE 10
 
 #define COST_MAP_LIMIT                  20
-#define COST_MAP_DEFAULT                100
-#define COST_MAP_EXPO_STATIC_INCREASER  5.0    // Lowest possible value to be used with expo. Makes the cost map more distinct, less changing of path
+#define COST_MAP_DEFAULT                1000
+#define COST_MAP_EXPO_STATIC_INCREASER  10.0    // Lowest possible value to be used with expo. Makes the cost map more distinct, less changing of path
 #define COST_MAP_EXPO_VALUE             3     // The expo value for cost calculation
 
 class Map {
@@ -44,6 +44,20 @@ public:
 
         preCalculateCost();
         preCalculateThickWall();
+    }
+
+
+
+
+    bool setThickTempToWall(double x, double y)
+    {
+        int i, j;
+        convertToIndexValue(x, y, i, j);
+
+        if(simple_thick_map_vector_[getIndexPosition(i, j)] == SIMPLE_BLOCKED_AREA)
+        {
+            simple_thick_map_vector_[getIndexPosition(i, j)] = SIMPLE_FREE_AREA;
+        }
     }
 
 
@@ -141,7 +155,6 @@ public:
 
 
 private:
-
 
     int height_;
     int width_;
