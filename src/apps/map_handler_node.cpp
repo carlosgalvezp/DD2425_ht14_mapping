@@ -33,7 +33,7 @@ class MapHandlerNode : rob::BasicNode
 {
 public:
 
-    MapHandlerNode() : mapHandler(Map(MAP_HEIGHT, MAP_WIDTH, MAP_CELL_SIZE))
+    MapHandlerNode() : new_adc_data_recieved_(false), new_laser_data_recieved_(false), mapHandler(Map(MAP_HEIGHT, MAP_WIDTH, MAP_CELL_SIZE))
     {
         // Publisher
         map_pub_ = n.advertise<nav_msgs::OccupancyGrid>(TOPIC_MAP_OCC_GRID, QUEUE_SIZE);
@@ -49,8 +49,10 @@ public:
         last_saving_time_ = ros::WallTime::now();
         map_counter_ = 0;
         // Reset map directory
+
         boost::filesystem::remove_all(RAS_Names::MAP_ROOT_PATH); // This also removes the /raw/ folder
         boost::filesystem::create_directory(RAS_Names::MAP_ROOT_PATH); // Re-create it
+
     }
 
     void run()
@@ -58,7 +60,7 @@ public:
         ros::Rate loop_rate(PUBLISH_RATE);
         while(ros::ok())
         {
-            if(odo_data_ != nullptr && adc_data_ != nullptr && las_data_ != nullptr){
+            if(odo_data_ != nullptr && adc_data_ != nullptr){
 
 
                 mapHandler.update(odo_data_, adc_data_, las_data_, new_adc_data_recieved_, new_laser_data_recieved_);
@@ -95,6 +97,7 @@ public:
                     msg_cost.data = (&mapHandler.getCostMap())[0];
                     map_pub_cost_.publish(msg_cost);
 
+
                     // ** Save the map if necessary
                     ros::WallTime current_t = ros::WallTime::now();
                     if( (current_t.toSec() - last_saving_time_.toSec()) > TIME_SAVE_MAP)
@@ -109,6 +112,7 @@ public:
                         ++map_counter_;
                         last_saving_time_ = current_t;
                     }
+
                 }
             }
 

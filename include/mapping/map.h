@@ -59,6 +59,18 @@ public:
         return false;
     }
 
+    bool setFreeIfUnknown(double x, double y)
+    {
+        int i, j;
+        convertToIndexValue(x, y, i, j);
+        if(getMapMatrix()[i][j].isUnknown())
+        {
+            setFree(i, j);
+            return true;
+        }
+        return false;
+    }
+
 
     bool setBlockedIfNotBlockedAllready(double x, double y)
     {

@@ -14,6 +14,7 @@
 #include <math.h>
 #include <vector>
 #include <string>
+#include <algorithm>
 
 #define MAX_SHORT_SENSOR_DISTANCE   25
 #define MAX_LONG_SENSOR_DISTANCE    25
@@ -81,6 +82,7 @@ public:
 
 
         if(new_adc_recieved){
+
             updateOccupiedAreaShortSensor(sd.right_front_, true, true);
             updateOccupiedAreaShortSensor(sd.right_back_, true, false);
             updateOccupiedAreaShortSensor(sd.left_front_, false, true);
@@ -93,6 +95,10 @@ public:
             updateFreeAreaShortSensor(sd.right_back_, true, false);
             updateFreeAreaShortSensor(sd.left_front_, false, true);
             updateFreeAreaShortSensor(sd.left_back_, false, false);
+
+
+            updateFreeAreaBetweenSensors(sd.right_front_, sd.right_back_, true);
+            updateFreeAreaBetweenSensors(sd.left_front_, sd.left_back_, false);
         }
 
         if(new_laser_recieved){
@@ -307,12 +313,6 @@ private:
         {
             getSensorReadingPos(x, y, sensor_reading_part_distance, sensor_angle, sensor_reading_part_distance + 1, sensor_distance_from_center, sensor_angle_center_offset);
             bool was_changed_to_free = map_.setFreeIfNotFreeAllready(x, y);
-
-            if(was_changed_to_free)
-            {
-                fillSmallUnknownAreaAroundPointWithFree(map_.getCell(x, y));
-                fillcloses4UnknownWithFree(map_.getCell(x, y));
-            }
         }
     }
 
@@ -454,6 +454,83 @@ private:
     {
         return atan2(y2 - y1, x2 - x1);
     }
+
+    struct Point
+    {
+        double x;
+        double y;
+    };
+
+    std::vector<Point> getSideSensorPoints(double sensor_angle, double d_front, double d_back, double sensor_angle_center_offset_front, double sensor_angle_center_offset_back)
+    {
+        std::vector<Point> polygon(4);
+        getSensorReadingPos(polygon[0].x, polygon[0].y, std::min(d_front - SENSOR_FREE_AREA_OFFSET_FROM_WALL, (double) MAX_SHORT_SENSOR_DISTANCE - SENSOR_FREE_AREA_OFFSET_FROM_WALL), sensor_angle, MAX_SHORT_SENSOR_DISTANCE + 1, SHORT_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset_front);
+        getSensorReadingPos(polygon[1].x, polygon[1].y, std::min(d_back - SENSOR_FREE_AREA_OFFSET_FROM_WALL, (double) MAX_SHORT_SENSOR_DISTANCE - SENSOR_FREE_AREA_OFFSET_FROM_WALL), sensor_angle, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset_back);
+        getSensorReadingPos(polygon[2].x, polygon[2].y, 0, sensor_angle, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset_back);
+        getSensorReadingPos(polygon[3].x, polygon[3].y, 0, sensor_angle, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER, sensor_angle_center_offset_front);
+        return polygon;
+    }
+
+    void updateFreeAreaBetweenSensors(double d_front, double d_back, bool right_side)
+    {
+        double sensor_angle = getShortSensorAngle(right_side);
+
+        double sensor_angle_center_offset_front = getShortSensorAngleCenterOffset(right_side, true);
+        double sensor_angle_center_offset_back = getShortSensorAngleCenterOffset(right_side, false);
+
+        std::vector<Point> polygon = getSideSensorPoints(sensor_angle, d_front, d_back, sensor_angle_center_offset_front, sensor_angle_center_offset_back);
+
+        double smallest_x = polygon[0].x;
+        double smallest_y = polygon[0].y;
+        double biggest_x = polygon[0].x;
+        double biggest_y = polygon[0].y;
+        ROS_INFO("New Value %d", right_side);
+        for(Point poly_point : polygon)
+        {
+
+            ROS_INFO("%f.3 :: %f.3" , poly_point.x, poly_point.y);
+
+            smallest_x = std::min(smallest_x, poly_point.x);
+            smallest_y = std::min(smallest_y, poly_point.y);
+            biggest_x = std::max(biggest_x, poly_point.x);
+            biggest_y = std::max(biggest_y, poly_point.y);
+            map_.setFreeIfUnknown(poly_point.x, poly_point.y);
+        }
+
+        ROS_INFO("%f.3 :: %f.3 :: %f.3 :: %f.3" , smallest_x, biggest_x, smallest_y, biggest_y);
+
+
+
+        Point point;
+        for(int i = smallest_x; i <= biggest_x; i++)
+        {
+            for(int j = smallest_y; j <= biggest_y; j++)
+            {
+                point.x = i;
+                point.y = j;
+                if(pointInPolygon(point, polygon))
+                {
+                    map_.setFreeIfUnknown(point.x, point.y);
+                }
+            }
+        }
+
+    }
+
+
+    bool pointInPolygon(const Point & point, const std::vector<Point> & polygon) {
+      int i, j, nvert = polygon.size();
+      bool c = false;
+
+        for(i = 0, j = nvert - 1; i < nvert; j = i++) {
+            if( ( (polygon[i].y) >= point.y ) != (polygon[j].y >= point.y) &&
+                (point.x <= (polygon[j].x - polygon[i].x) * (point.y - polygon[i].y) / (polygon[j].y - polygon[i].y) + polygon[i].x)
+              )
+              c = !c;
+          }
+
+          return c;
+        }
 };
 
 
