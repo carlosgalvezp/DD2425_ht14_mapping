@@ -22,7 +22,7 @@
 // ** Global variables and functions to be called by the SIGINT handle.
 // ** I am sorry but there is no other option!! :(
 
-    void computeObjectsPath(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
+    void computeObjectsGraph(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
                             const std_msgs::Int64MultiArray::ConstPtr &map_cost_msg,
                             const std::vector<geometry_msgs::Point> &object_vector,
                             std::vector<Node> &objects_path);
@@ -44,11 +44,13 @@
 
 void mySigintHandler(int sig)
 {
-    // ** Before exiting, compute TSP path and save it to disk
+    // ** Before exiting, compute Graph path and save it to disk
     std::cout <<"[ObjectMapNode] Computing TSP path for objects" << std::endl;
     std::vector<Node> objects_path;
-    computeObjectsPath(map_msg_, map_cost_msg_, object_vector_, objects_path);
-    saveObjectsPath(RAS_Names::OBJECT_BEST_PATH_PATH, objects_path);
+    computeObjectsGraph(map_msg_, map_cost_msg_, object_vector_, objects_path);
+
+    // ** Call another node to solve the TSP problem
+    system("rosrun mapping tsp_solver_node");
 
     // All the default sigint handler does is call shutdown()
     ros::shutdown();
@@ -97,7 +99,7 @@ void mapCostCallback(const std_msgs::Int64MultiArray::ConstPtr &msg)
 }
 
 
-void computeObjectsPath(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
+void computeObjectsGraph(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
                         const std_msgs::Int64MultiArray::ConstPtr &map_cost_msg,
                         const std::vector<geometry_msgs::Point> &object_vector,
                         std::vector<Node> &objects_path)
@@ -143,9 +145,11 @@ void computeObjectsPath(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
         // ** Create graph
         Graph graph(nodes, edges);
         std::cout << "Created graph with "<<nodes.size() << " and " << edges.size()<<std::endl;
-        // ** Solve TSP problem
-        GeneticAlgorithm gm(graph);
-        gm.computeSolution(objects_path);
+
+        // ** Save to file
+        std::ofstream file(RAS_Names::OBJECT_GRAPH_PATH);
+        file << graph;
+        file.close();
     }
     else
     {

@@ -28,7 +28,7 @@
 #define MAP_WIDTH       1000    // Corresponds to amount of cells
 #define MAP_CELL_SIZE   1.0     // Width and Height in // Corresponds to amount of cells CM per Cell
 
-#define TIME_SAVE_MAP   30.0    // [s] After this time interval passes, we save the map. E.g.: save map every 30 seconds
+#define TIME_SAVE_MAP   10.0    // [s] After this time interval passes, we save the map. E.g.: save map every 30 seconds
 
 class MapHandlerNode : rob::BasicNode
 {
@@ -46,9 +46,6 @@ public:
         adc_sub_ = n.subscribe(TOPIC_ARDUINO_ADC_FILTERED, 1,  &MapHandlerNode::adcCallback, this);
         las_sub_ = n.subscribe(TOPIC_OBSTACLE_LASER_MAP, 1,  &MapHandlerNode::laserCallback, this);
 
-
-        last_saving_time_ = ros::WallTime::now();
-        map_counter_ = 0;
         // Reset map directory
 
         /*
@@ -97,25 +94,6 @@ public:
                     // Cost Map
                     msg_cost.data = (&mapHandler.getCostMap())[0];
                     map_pub_cost_.publish(msg_cost);
-
-
-                    /*
-                    // ** Save the map if necessary
-                    ros::WallTime current_t = ros::WallTime::now();
-                    if( (current_t.toSec() - last_saving_time_.toSec()) > TIME_SAVE_MAP)
-                    {
-                        ROS_INFO(" ===== SAVING MAP ==== ");
-                        std::stringstream ss1,ss2;
-                        ss1 << RAS_Names::THICK_MAP_DATA_PATH << "thick_map"<<map_counter_<<".png";
-                        ss2 << RAS_Names::THICK_MAP_METADATA_PATH<<"thick_map"<<map_counter_<<".txt";
-
-                        this->map_io_.saveMap(ss1.str(), ss2.str(), msg_thick);
-
-                        ++map_counter_;
-                        last_saving_time_ = current_t;
-                    }
-                    */
-
                 }
             }
 
@@ -145,11 +123,6 @@ private:
 
     // ** The actual map
     MapHandler mapHandler;
-    Map_IO map_io_;
-
-    // ** Variables to help saving the map every X seconds
-    int map_counter_;
-    ros::WallTime last_saving_time_;
 
     void odoCallback(const geometry_msgs::Pose2D::ConstPtr& msg) {
         odo_data_ = msg;

@@ -41,3 +41,7 @@ target_link_libraries(map_loader_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
 add_executable(object_map_node src/apps/object_map_node.cpp ${HEADERS} ${SOURCES})
 add_dependencies(object_map_node ${catkin_EXPORTED_TARGETS})
 target_link_libraries(object_map_node ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})
+
+add_executable(tsp_solver_node src/apps/tsp_solver_node.cpp ${HEADERS} ${SOURCES})
+add_dependencies(tsp_solver_node ${catkin_EXPORTED_TARGETS})
+target_link_libraries(tsp_solver_node  ${catkin_LIBRARIES} ${OpenCV_LIBRARIES})

@@ -1,11 +1,11 @@
 <launch>
 
-<!-- IR sensor filtering -->
-  <node pkg="sensor_converter" type="ir_filtering" name="ir_filtering_node" output = "screen" />
+<!-- NOTE: it requires to rosrun sensor_converter ir_filtering -->
 
 <!-- Mapping -->
   <node pkg="mapping" type="map_handler_node" name="map_handler_node" output = "screen" />
 
-<!-- TSP solver -->
+<!-- Graph creation -->
   <node pkg="mapping" type="object_map_node" name="object_map_node" output = "screen" />
+
 </launch>
