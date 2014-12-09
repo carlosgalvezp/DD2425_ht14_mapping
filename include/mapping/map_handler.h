@@ -37,7 +37,7 @@
 
 #define SENSOR_FREE_AREA_OFFSET_FROM_WALL 4 // To make sure we do not overwrite blocked cells right after setting them
 
-#define MAX_SENSOR_WALL_TO_FREE_PER_ITERATION 1
+#define MAX_SENSOR_WALL_TO_FREE_PER_ITERATION 2
 
 class MapHandler {
 public:
