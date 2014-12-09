@@ -70,7 +70,7 @@ public:
 
 
 
-        RAS_Utils::sensors::SensorDistances sd(adc_data->front,
+        SensorDistances sd(adc_data->front,
            adc_data->back,
            adc_data->front_right,
            adc_data->back_right,
@@ -152,6 +152,27 @@ public:
 
 
 private:
+    struct SensorDistances
+    {
+        double back_;
+        double front_;
+        double right_front_;
+        double right_back_;
+        double left_front_;
+        double left_back_;
+        SensorDistances(){}
+        SensorDistances(double front_reading, double back_reading, double right_front_reding, double right_back_reading, double left_front_reading, double left_back_reading)
+            : front_(front_reading*100.0),
+              back_(back_reading*100.0),
+              right_front_(right_front_reding*100.0),
+              right_back_(right_back_reading*100.0),
+              left_front_(left_front_reading*100.0),
+              left_back_(left_back_reading*100.0)
+        {
+        }
+    };
+
+
     struct PrevValue {
         double x;
         double y;

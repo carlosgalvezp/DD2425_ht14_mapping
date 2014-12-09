@@ -61,6 +61,7 @@ public:
         {
             if(odo_data_ != nullptr && adc_data_ != nullptr){
 
+
                 mapHandler.update(odo_data_, adc_data_, las_data_, new_adc_data_recieved_, new_laser_data_recieved_);
                 new_laser_data_recieved_= false;
                 new_adc_data_recieved_ = false;  // needed for removing duplicate data
