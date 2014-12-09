@@ -11,6 +11,7 @@
 #include <sstream>
 #include <std_msgs/Int64MultiArray.h>
 #include <ras_srv_msgs/LaserScanner.h>
+#include <ras_srv_msgs/IRData.h>
 
 #include <mapping/map_io.h>
 #include <ras_utils/occupancy_map_utils.h>
@@ -42,7 +43,7 @@ public:
         save_map_pub_ = n.advertise<std_msgs::Bool>(TOPIC_MAP_SAVE,QUEUE_SIZE);
         // Subscriber
         odo_sub_ = n.subscribe(TOPIC_ODOMETRY, 1,  &MapHandlerNode::odoCallback, this);
-        adc_sub_ = n.subscribe(TOPIC_ARDUINO_ADC, 1,  &MapHandlerNode::adcCallback, this);
+        adc_sub_ = n.subscribe(TOPIC_ARDUINO_ADC_FILTERED, 1,  &MapHandlerNode::adcCallback, this);
         las_sub_ = n.subscribe(TOPIC_OBSTACLE_LASER_MAP, 1,  &MapHandlerNode::laserCallback, this);
 
 
@@ -132,7 +133,8 @@ private:
 
     // ** Recieved messages from subscribers
     geometry_msgs::Pose2D::ConstPtr odo_data_;
-    ras_arduino_msgs::ADConverter::ConstPtr adc_data_;
+//    ras_arduino_msgs::ADConverter::ConstPtr adc_data_;
+    ras_srv_msgs::IRDataConstPtr adc_data_;
     ras_srv_msgs::LaserScanner::ConstPtr las_data_;
 
     // ** The actual map
@@ -149,11 +151,17 @@ private:
 
     bool new_adc_data_recieved_;
 
-    void adcCallback(const ras_arduino_msgs::ADConverter::ConstPtr& msg)
+//    void adcCallback(const ras_arduino_msgs::ADConverter::ConstPtr& msg)
+//    {
+//        new_adc_data_recieved_ = true; // needed for removing duplicate data
+//        adc_data_ = msg;
+
+//    }
+    void adcCallback(const ras_srv_msgs::IRDataConstPtr& msg)
     {
+        std::cout << "RECEIVED ADC "<<msg->front<<std::endl;
         new_adc_data_recieved_ = true; // needed for removing duplicate data
         adc_data_ = msg;
-
     }
 
     bool new_laser_data_recieved_;

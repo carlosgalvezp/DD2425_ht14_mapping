@@ -4,7 +4,7 @@
 #include <geometry_msgs/Pose2D.h>
 #include <ras_arduino_msgs/ADConverter.h>
 #include <ras_srv_msgs/LaserScanner.h>
-
+#include <ras_srv_msgs/IRData.h>
 #include <ras_utils/ras_utils.h>
 #include <ras_utils/ras_sensor_utils.h>
 
@@ -54,7 +54,7 @@ public:
     }
 
     void update(const geometry_msgs::Pose2D::ConstPtr &odo_data,
-                const ras_arduino_msgs::ADConverter::ConstPtr &adc_data,
+                const ras_srv_msgs::IRData::ConstPtr &adc_data,
                 const ras_srv_msgs::LaserScanner::ConstPtr &las_data,
                 bool new_adc_recieved,
                 bool new_laser_recieved)
@@ -67,12 +67,12 @@ public:
 
 
 
-        RAS_Utils::sensors::SensorDistances sd(adc_data->ch8,
-           adc_data->ch7,
-           adc_data->ch4,
-           adc_data->ch3,
-           adc_data->ch1,
-           adc_data->ch2);
+        RAS_Utils::sensors::SensorDistances sd(adc_data->front,
+           adc_data->back,
+           adc_data->front_right,
+           adc_data->back_right,
+           adc_data->front_left,
+           adc_data->back_left);
 
 
         // Update where we detect walls based on sensor readings
