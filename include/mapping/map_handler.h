@@ -119,6 +119,29 @@ public:
 
     }
 
+    void objectDetected(const geometry_msgs::Point & object_point)
+    {
+        double x_pos = object_point.x * METRIC_CONVERTER;
+        double y_pos = object_point.y * METRIC_CONVERTER;
+        Cell& object_cell = map_.getCell(x_pos, y_pos);
+        int object_index = map_.getIndexPosition(object_cell.getI(), object_cell.getJ());
+        if(objects_collected.find(object_index) == objects_collected.end())
+        {
+
+            // New object!
+            for(int x = -2; x <= 2; x++)
+            {
+                for(int y = - 2; y <= 2; y++)
+                {
+                    map_.setBlockedIfNotBlockedAllready(x_pos + x, y_pos + y);
+                }
+            }
+        }
+
+        // add object to set, so we do not add this object multiple times
+        objects_collected.insert(object_index);
+    }
+
     std::vector<int8_t> & getMap()
     {
         return map_.getSimpleMapVector();
@@ -197,6 +220,8 @@ private:
 
     typedef std::vector< std::vector<Cell> > CellMatrix;
     typedef std::vector<Cell> CellVector;
+
+    std::set<int> objects_collected;
 
 
     void updateAreaLaser(const ras_srv_msgs::LaserScanner & laser_scanner, bool paint_wall)

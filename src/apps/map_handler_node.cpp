@@ -51,6 +51,7 @@ public:
         odo_sub_ = n.subscribe(TOPIC_ODOMETRY, 1,  &MapHandlerNode::odoCallback, this);
         adc_sub_ = n.subscribe(TOPIC_ARDUINO_ADC_FILTERED, 1,  &MapHandlerNode::adcCallback, this);
         las_sub_ = n.subscribe(TOPIC_OBSTACLE_LASER_MAP, 1,  &MapHandlerNode::laserCallback, this);
+        obj_sub_ = n.subscribe(TOPIC_OBJECT_AS_OBSTACLE, 1, &MapHandlerNode::objCallbak, this);
 
         // Reset map directory
 
@@ -131,6 +132,7 @@ private:
     ros::Subscriber odo_sub_;
     ros::Subscriber adc_sub_;
     ros::Subscriber las_sub_;
+    ros::Subscriber obj_sub_;
 
     // ** Recieved messages from subscribers
     geometry_msgs::Pose2D::ConstPtr odo_data_;
@@ -158,6 +160,12 @@ private:
     {
         new_laser_data_recieved_ = true;
         las_data_ = msg;
+    }
+
+
+    void objCallbak(const geometry_msgs::Point::ConstPtr& msg)
+    {
+        mapHandler.objectDetected(*msg);
     }
 
     void fixLinesRawMap(nav_msgs::OccupancyGrid & map);
