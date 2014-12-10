@@ -120,8 +120,6 @@ void computeObjectsGraph(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
             Node n(p.x, p.y,nodes.size());
             nodes.push_back(n);
         }
-        // Add the start node again, so that we come back after fetching objects
-        nodes.push_back(Node(0.0,0.0,nodes.size()));
 
         // ** Get edges and cost
         for(std::size_t i = 0; i < nodes.size(); ++i)

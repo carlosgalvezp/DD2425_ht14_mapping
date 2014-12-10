@@ -206,10 +206,10 @@ private:
         for(int i = 0; i < laser_scanner.scan.size(); i += 15)
         {
             const ras_srv_msgs::LaserLine & line = laser_scanner.scan[i];
-            double from_x = line.from.x * METRIC_CONVERTER + robot_x_pos_offset_;
-            double from_y = line.from.y * METRIC_CONVERTER + robot_y_pos_offset_;
-            double to_x = line.to.x * METRIC_CONVERTER + robot_x_pos_offset_;
-            double to_y = line.to.y * METRIC_CONVERTER + robot_y_pos_offset_;
+            double from_x = line.from_.x * METRIC_CONVERTER + robot_x_pos_offset_;
+            double from_y = line.from_.y * METRIC_CONVERTER + robot_y_pos_offset_;
+            double to_x = line.to_.x * METRIC_CONVERTER + robot_x_pos_offset_;
+            double to_y = line.to_.y * METRIC_CONVERTER + robot_y_pos_offset_;
             bool is_wall = line.is_wall;
 
             if(is_wall && paint_wall || !is_wall && !paint_wall)

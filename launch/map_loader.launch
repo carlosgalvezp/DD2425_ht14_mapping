@@ -1,5 +1,5 @@
 <launch>
 
   <node pkg="mapping" type="map_loader_node" name="map_loader_node" output = "screen" />
-
+  <node pkg="mapping" type="bag_play_node" name="map_play_node" output = "screen" />
 </launch>
