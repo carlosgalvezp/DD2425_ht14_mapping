@@ -52,9 +52,9 @@ MapLoaderNode::MapLoaderNode()
     map_pub_cost_  = n.advertise<std_msgs::Int64MultiArray>(TOPIC_MAP_COST, QUEUE_SIZE);
 
     // Subscriber
-    map_sub_thick_ = n.subscribe(TOPIC_MAP_OCC_GRID_THICK, QUEUE_SIZE, &MapLoaderNode::thickMapCallback, this);
-    map_sub_raw_   = n.subscribe(TOPIC_MAP_OCC_GRID,       QUEUE_SIZE, &MapLoaderNode::rawMapCallback, this);
-    map_sub_cost_  = n.subscribe(TOPIC_MAP_COST,           QUEUE_SIZE, &MapLoaderNode::costMapCallback, this);
+    map_sub_thick_ = n.subscribe(TOPIC_MAP_OCC_GRID_THICK_BAG, QUEUE_SIZE, &MapLoaderNode::thickMapCallback, this);
+    map_sub_raw_   = n.subscribe(TOPIC_MAP_OCC_GRID_BAG,       QUEUE_SIZE, &MapLoaderNode::rawMapCallback, this);
+    map_sub_cost_  = n.subscribe(TOPIC_MAP_COST_BAG,           QUEUE_SIZE, &MapLoaderNode::costMapCallback, this);
 
 }
 

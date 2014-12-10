@@ -27,7 +27,7 @@
 
 #define METRIC_CONVERTER    100.0 // To convert meters from odometry to cm in map (might redo this)
 
-#define FREE_AREA_LIMIT 10
+#define FREE_AREA_LIMIT 8
 
 #define SENSOR_READING_PART_DISTANCE_BLOCK_SIZE 0.5 // Value 0.1 means that when working through the linear function "Sensor start to sensor reading", we look 0.1 cm at a time. Lower value leads to more computational costs but better precission in the sense of not missing a "hit node"
 
@@ -37,7 +37,7 @@
 
 #define SENSOR_FREE_AREA_OFFSET_FROM_WALL 4 // To make sure we do not overwrite blocked cells right after setting them
 
-#define MAX_SENSOR_WALL_TO_FREE_PER_ITERATION 2
+#define MAX_SENSOR_WALL_TO_FREE_PER_ITERATION 1
 
 class MapHandler {
 public:
