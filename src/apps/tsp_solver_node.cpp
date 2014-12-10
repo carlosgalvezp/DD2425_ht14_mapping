@@ -18,8 +18,6 @@ int main(int argc, char **argv)
     signal(SIGINT, mySigintHandler);
     signal(SIGTERM, mySigTermHandler); // Even you want to kill me, you wont be able to :)
 
-    std::cout << "===== TSP SOLVER ========"<<std::endl;
-
     // ** Read graph from file
     std::ifstream file(RAS_Names::OBJECT_GRAPH_PATH);
     Graph g;
@@ -27,12 +25,9 @@ int main(int argc, char **argv)
     file.close();
 
     // Solve TSP with Genetic Algorithm
-    std::cout << "=== BEFORE CREATING GA====" <<std::endl;
     GeneticAlgorithm ga(g);
     std::vector<Node> objects_path;
-    std::cout << "=== BEFORE COMPUTE SOLUTION====" <<std::endl;
     ga.computeSolution(objects_path);
-    std::cout << "==== AFTER COMPUTE SOLUTION ====" <<std::endl;
 
     // Save to file
     if(objects_path.size() != 0)

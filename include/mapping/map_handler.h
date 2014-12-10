@@ -39,6 +39,8 @@
 
 #define MAX_SENSOR_WALL_TO_FREE_PER_ITERATION 1
 
+#define DANGER_CLOSE_RANGE 7.5
+
 class MapHandler {
 public:
 
@@ -226,13 +228,13 @@ private:
 
     void updateAreaLaser(const ras_srv_msgs::LaserScanner & laser_scanner, bool paint_wall)
     {
-        for(int i = 0; i < laser_scanner.scan.size(); i++)
+        for(int i = 0; i < laser_scanner.scan.size(); i += 15)
         {
             const ras_srv_msgs::LaserLine & line = laser_scanner.scan[i];
-            double from_x = line.from.x * METRIC_CONVERTER + robot_x_pos_offset_;
-            double from_y = line.from.y * METRIC_CONVERTER + robot_y_pos_offset_;
-            double to_x = line.to.x * METRIC_CONVERTER + robot_x_pos_offset_;
-            double to_y = line.to.y * METRIC_CONVERTER + robot_y_pos_offset_;
+            double from_x = line.from_.x * METRIC_CONVERTER + robot_x_pos_offset_;
+            double from_y = line.from_.y * METRIC_CONVERTER + robot_y_pos_offset_;
+            double to_x = line.to_.x * METRIC_CONVERTER + robot_x_pos_offset_;
+            double to_y = line.to_.y * METRIC_CONVERTER + robot_y_pos_offset_;
             bool is_wall = line.is_wall;
 
             if(is_wall && paint_wall || !is_wall && !paint_wall)
@@ -270,6 +272,11 @@ private:
         PrevValue & prev_value = getPrevValueShortSensors(right_side, front);
 
         updateOccupiedArea(sensor_reading_distance, sensor_angle, sensor_angle_center_offset, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER);
+        if(sensor_reading_distance < DANGER_CLOSE_RANGE)
+        {
+            updateOccupiedArea(2, sensor_angle, sensor_angle_center_offset, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER);
+        
+        }
     }
 
     void updateOccupiedArea(double sensor_reading_distance, double sensor_angle, double sensor_angle_center_offset, int max_sensor_distance, double sensor_distance_from_center)
@@ -350,6 +357,10 @@ private:
 
     void updateFreeAreaShortSensor(double sensor_reading_distance, bool right_side, bool front)
     {
+        if(sensor_reading_distance < DANGER_CLOSE_RANGE)
+        {
+            return;
+        }
         double sensor_angle = getShortSensorAngle(right_side);
 
         double sensor_angle_center_offset = getShortSensorAngleCenterOffset(right_side, front);
@@ -391,7 +402,7 @@ private:
                 x_pos = robot_x_pos_ + x;
                 y_pos = robot_y_pos_ + y;
                 map_.setFreeIfNotFreeAllready(x_pos, y_pos);
-                map_.setThickTempToWall(x_pos, y_pos);
+                //map_.setThickTempToWall(x_pos, y_pos);
             }
         }
     }

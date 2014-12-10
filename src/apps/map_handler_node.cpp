@@ -30,6 +30,8 @@
 
 #define TIME_SAVE_MAP   10.0    // [s] After this time interval passes, we save the map. E.g.: save map every 30 seconds
 
+#define TIME_BEFORE_END_SAVE_MAP 10.0    // [s] We will use the map 5.0s before we made Ctrl + C
+
 class MapHandlerNode : rob::BasicNode
 {
 public:
@@ -68,6 +70,7 @@ public:
         {
             if(odo_data_ != nullptr && adc_data_ != nullptr){
 
+                //ros::WallTime temp_time = ros::WallTime::now();
 
                 mapHandler.update(odo_data_, adc_data_, las_data_, new_adc_data_recieved_, new_laser_data_recieved_);
                 new_laser_data_recieved_= false;
@@ -106,14 +109,13 @@ public:
                     if(++publish_bag_counter_ > PUBLISH_RATE)
                     {
                         // ** Publish to the recording every second instead, since the bag weighs A LOT
-                        fixLinesRawMap(msg_raw);
-
                         map_pub_bag_.publish(msg_raw);
                         map_pub_thick_bag_.publish(msg_thick);
                         map_pub_cost_bag_.publish(msg_cost);
 
                         publish_bag_counter_ = 0;
                     }
+                 //   std::cout << "map time: " << RAS_Utils::time_diff_ms(temp_time, ros::WallTime::now()) << std::endl;
                 }
             }
 
@@ -142,6 +144,7 @@ private:
     // ** The actual map
     MapHandler mapHandler;
 
+
     void odoCallback(const geometry_msgs::Pose2D::ConstPtr& msg) {
         odo_data_ = msg;
     }
@@ -150,6 +153,7 @@ private:
 
     void adcCallback(const ras_srv_msgs::IRDataConstPtr& msg)
     {
+        ROS_INFO("ADC recieved");
         new_adc_data_recieved_ = true; // needed for removing duplicate data
         adc_data_ = msg;
     }
@@ -177,26 +181,17 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "map_handler_node");
 
     MapHandlerNode mhn;
+    ros::WallTime t1(ros::WallTime::now());
 
     mhn.run();
+
+    // ** Save time
+    int timeStart = 0.001 * RAS_Utils::time_diff_ms(t1, ros::WallTime::now()) - TIME_BEFORE_END_SAVE_MAP;
+    std::ofstream file(RAS_Names::FILE_TIME_START_MAP_ROSBAG);
+    file << timeStart;
+    file.close();
 
     return 0;
 }
 
-void MapHandlerNode::fixLinesRawMap(nav_msgs::OccupancyGrid &map)
-{
-    // ** Convert to cv::Mat
-    cv::Mat img_raw = cv::Mat(MAP_HEIGHT, MAP_WIDTH, CV_8UC1, &(map.data[0]));
-    cv::threshold(img_raw, img_raw, 50, 255, CV_THRESH_BINARY);
-    cv::imshow("RAW", img_raw);
-    // ** Erode and dilate
-    int size = 3;
-    cv::Mat element = cv::getStructuringElement( cv::MORPH_RECT,cv::Size( 2*size + 1, 2*size+1 ),cv::Point( size, size ) );
-    cv::dilate( img_raw, img_raw, element );
-    imshow("After dilation", img_raw );
-    cv::erode( img_raw, img_raw, element );
-    imshow("After erosion", img_raw );
-    cv::waitKey(1);
-    // ** Convert back to vector
-    memcpy(img_raw.data, &(map.data[0]), sizeof(unsigned char)*MAP_HEIGHT*MAP_WIDTH);
-}
+
