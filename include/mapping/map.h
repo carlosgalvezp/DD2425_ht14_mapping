@@ -11,7 +11,7 @@
 #define THICK_WALL_COUNTER_LIMIT 5
 #define THICK_WALL_SIZE 11
 
-#define COST_MAP_LIMIT                  20
+#define COST_MAP_LIMIT                  5
 #define COST_MAP_DEFAULT                1000
 #define COST_MAP_EXPO_STATIC_INCREASER  10.0    // Lowest possible value to be used with expo. Makes the cost map more distinct, less changing of path
 #define COST_MAP_EXPO_VALUE             3     // The expo value for cost calculation
@@ -189,7 +189,7 @@ private:
             {
                 // Going specifically from blocked to free
                 updateThickMapVectorWall(cell.getI(), cell.getJ(), false);
-                updateCellCost(cell.getI(), cell.getJ(), false);
+                //updateCellCost(cell.getI(), cell.getJ(), false);
             } else
             {
                 updateThickMapVectorFree(cell.getI(), cell.getJ());
@@ -198,7 +198,7 @@ private:
         } else if(cell.isBlocked() || cell.isObject()){
             simple_map_vector_[getIndexPosition(cell.getI(), cell.getJ())] = SIMPLE_BLOCKED_AREA;
             updateThickMapVectorWall(cell.getI(), cell.getJ(), true);
-            updateCellCost(cell.getI(), cell.getJ(), true);
+           // updateCellCost(cell.getI(), cell.getJ(), true);
         } else {
             simple_map_vector_[getIndexPosition(cell.getI(), cell.getJ())] = SIMPLE_UNKNOWN_AREA;
         }
@@ -306,6 +306,7 @@ private:
                     {
                         // Counter reached, fill with wall
                         simple_thick_map_vector_[index] = SIMPLE_BLOCKED_AREA;
+                        updateCellCost(i + cell_i, j + cell_j, true);
                     } else
                     {
                         // It should not be willed with wall just yet
@@ -313,6 +314,7 @@ private:
                         {
                             //IF it was filled, change to not filled
                             simple_thick_map_vector_[index] = SIMPLE_FREE_AREA;
+                            updateCellCost(i + cell_i, j + cell_j, false);
                         } else if(simple_map_vector_[index] != SIMPLE_UNKNOWN_AREA)
                         {
                             // The "normal" map is not unknown here, so set it to known for the thick map
