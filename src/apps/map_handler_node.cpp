@@ -49,7 +49,7 @@ public:
 
         // Subscriber
         odo_sub_ = n.subscribe(TOPIC_ODOMETRY, 1,  &MapHandlerNode::odoCallback, this);
-        adc_sub_ = n.subscribe(TOPIC_ARDUINO_ADC_FILTERED, 1,  &MapHandlerNode::adcCallback, this);
+        adc_sub_ = n.subscribe(TOPIC_ARDUINO_ADC_NOT_FILTERED, 1,  &MapHandlerNode::adcCallback, this);
         las_sub_ = n.subscribe(TOPIC_OBSTACLE_LASER_MAP, 1,  &MapHandlerNode::laserCallback, this);
 
         // Reset map directory
@@ -67,6 +67,7 @@ public:
         {
             if(odo_data_ != nullptr && adc_data_ != nullptr){
 
+                //ros::WallTime temp_time = ros::WallTime::now();
 
                 mapHandler.update(odo_data_, adc_data_, las_data_, new_adc_data_recieved_, new_laser_data_recieved_);
                 new_laser_data_recieved_= false;
@@ -102,6 +103,7 @@ public:
                     msg_cost.data = (&mapHandler.getCostMap())[0];
                     map_pub_cost_.publish(msg_cost);
 
+/*
                     if(++publish_bag_counter_ > PUBLISH_RATE)
                     {
                         // ** Publish to the recording every second instead, since the bag weighs A LOT
@@ -113,6 +115,8 @@ public:
 
                         publish_bag_counter_ = 0;
                     }
+                    */
+                 //   std::cout << "map time: " << RAS_Utils::time_diff_ms(temp_time, ros::WallTime::now()) << std::endl;
                 }
             }
 
@@ -148,6 +152,7 @@ private:
 
     void adcCallback(const ras_srv_msgs::IRDataConstPtr& msg)
     {
+        ROS_INFO("ADC recieved");
         new_adc_data_recieved_ = true; // needed for removing duplicate data
         adc_data_ = msg;
     }
