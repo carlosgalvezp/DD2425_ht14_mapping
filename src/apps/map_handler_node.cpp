@@ -105,6 +105,8 @@ public:
                     if(++publish_bag_counter_ > PUBLISH_RATE)
                     {
                         // ** Publish to the recording every second instead, since the bag weighs A LOT
+                        fixLinesRawMap(msg_raw);
+
                         map_pub_bag_.publish(msg_raw);
                         map_pub_thick_bag_.publish(msg_thick);
                         map_pub_cost_bag_.publish(msg_cost);
@@ -158,6 +160,8 @@ private:
         las_data_ = msg;
     }
 
+    void fixLinesRawMap(nav_msgs::OccupancyGrid & map);
+
     int publish_bag_counter_;
 };
 
@@ -169,4 +173,22 @@ int main(int argc, char **argv) {
     mhn.run();
 
     return 0;
+}
+
+void MapHandlerNode::fixLinesRawMap(nav_msgs::OccupancyGrid &map)
+{
+    // ** Convert to cv::Mat
+    cv::Mat img_raw = cv::Mat(MAP_HEIGHT, MAP_WIDTH, CV_8UC1, &(map.data[0]));
+    cv::threshold(img_raw, img_raw, 50, 255, CV_THRESH_BINARY);
+    cv::imshow("RAW", img_raw);
+    // ** Erode and dilate
+    int size = 3;
+    cv::Mat element = cv::getStructuringElement( cv::MORPH_RECT,cv::Size( 2*size + 1, 2*size+1 ),cv::Point( size, size ) );
+    cv::dilate( img_raw, img_raw, element );
+    imshow("After dilation", img_raw );
+    cv::erode( img_raw, img_raw, element );
+    imshow("After erosion", img_raw );
+    cv::waitKey(1);
+    // ** Convert back to vector
+    memcpy(img_raw.data, &(map.data[0]), sizeof(unsigned char)*MAP_HEIGHT*MAP_WIDTH);
 }
