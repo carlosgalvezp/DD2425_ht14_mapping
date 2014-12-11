@@ -53,10 +53,9 @@ public:
         robot_y_pos_(0),
         robot_x_pos_offset_(map.getWidth() / 2),
         robot_y_pos_offset_(map.getHeight() / 2),
-        prev_value_short_sensors_(4, PrevValue(-10000, -10000)),
-        prev_value_long_sensors_(2, PrevValue(-10000, -10000))
+        has_filled_behind_ass_(false)
     {
-        fillBehindYourAss();
+
     }
 
     void update(const geometry_msgs::Pose2D::ConstPtr &odo_data,
@@ -71,6 +70,11 @@ public:
         robot_y_pos_ = odo_data->y * METRIC_CONVERTER + robot_y_pos_offset_;
         robot_angle_ = odo_data->theta;
 
+        if(!has_filled_behind_ass_)
+        {
+            fillBehindYourAss();
+            has_filled_behind_ass_ = true;
+        }
 
 
         SensorDistances sd(adc_data->front,
@@ -86,27 +90,25 @@ public:
        // updateOccupiedAreaLongSensor(dist_back_large_range, false);
 
         updateFreeAreaUsingRobotPos();
+        updateFreeInFrontOfRobot(adc_data->front);
+
 
         if(new_adc_recieved){
-
             updateOccupiedAreaShortSensor(sd.right_front_, true, true);
             updateOccupiedAreaShortSensor(sd.right_back_, true, false);
             updateOccupiedAreaShortSensor(sd.left_front_, false, true);
             updateOccupiedAreaShortSensor(sd.left_back_, false, false);
 
-
-            /*
             updateFreeAreaShortSensor(sd.right_front_, true, true);
             updateFreeAreaShortSensor(sd.right_back_, true, false);
             updateFreeAreaShortSensor(sd.left_front_, false, true);
             updateFreeAreaShortSensor(sd.left_back_, false, false);
-            */
-
 
             updateFreeAreaBetweenSensors(sd.right_front_, sd.right_back_, true);
             updateFreeAreaBetweenSensors(sd.left_front_, sd.left_back_, false);
 
         }
+
 
         if(new_laser_recieved){
           //  updateAreaLaser(*las_data, false);
@@ -199,17 +201,6 @@ private:
         }
     };
 
-
-    struct PrevValue {
-        double x;
-        double y;
-
-        PrevValue(double x, double y) : x(x), y(y){}
-    };
-
-    std::vector<PrevValue> prev_value_short_sensors_;
-    std::vector<PrevValue> prev_value_long_sensors_;
-
     Map map_;
 
     int height_;
@@ -227,13 +218,15 @@ private:
 
     std::set<int> objects_collected;
 
+    bool has_filled_behind_ass_;
+
 
     void fillBehindYourAss()
     {
         double x = -12.5;
         for(int y = -15; y <= 15; y++)
         {
-            map_.setBlockedIfNotBlockedAllready(-13.5, (double) y);
+            map_.setBlockedIfNotBlockedAllready(robot_x_pos_ + x, robot_y_pos_ + (double) y);
         }
     }
 
@@ -271,7 +264,6 @@ private:
     {
         double sensor_angle = (front) ? 0 : M_PI;
         double sensor_angle_center_offset = (front) ? LONG_FRONT_SENSOR_ANGLE_FROM_FORWARD : M_PI + LONG_FRONT_SENSOR_ANGLE_FROM_FORWARD;
-        PrevValue & prev_value = getPrevValueLongSensors(front);
 
         updateOccupiedArea(sensor_reading_distance, sensor_angle, sensor_angle_center_offset, MAX_LONG_SENSOR_DISTANCE, LONG_SENSOR_DISTANCE_FROM_CENTER);
     }
@@ -280,7 +272,6 @@ private:
     {
         double sensor_angle = getShortSensorAngle(right_side);
         double sensor_angle_center_offset = getShortSensorAngleCenterOffset(right_side, front);
-        PrevValue & prev_value = getPrevValueShortSensors(right_side, front);
 
         updateOccupiedArea(sensor_reading_distance, sensor_angle, sensor_angle_center_offset, MAX_SHORT_SENSOR_DISTANCE, SHORT_SENSOR_DISTANCE_FROM_CENTER);
         if(sensor_reading_distance < DANGER_CLOSE_RANGE)
@@ -406,6 +397,20 @@ private:
         return angle;
     }
 
+    void updateFreeInFrontOfRobot(double front_dist)
+    {
+        double front_y_limit = 12.0;
+        double front_x_base = 8.0;
+        double front_x_limit = front_x_base + std::min(10.0, front_dist);
+        std::vector<Point> polygon;
+        polygon.push_back(getPointUsingCenterOffset(front_x_base, front_y_limit));
+        polygon.push_back(getPointUsingCenterOffset(front_x_limit, front_y_limit));
+        polygon.push_back(getPointUsingCenterOffset(front_x_limit, -front_y_limit));
+        polygon.push_back(getPointUsingCenterOffset(front_x_base, -front_y_limit));
+
+        updateFreeAreaWithinPolygon(polygon);
+    }
+
     void updateFreeAreaUsingRobotPos() {
         double x_pos, y_pos;
         for(int x = -FREE_AREA_LIMIT; x <= FREE_AREA_LIMIT; x++) {
@@ -511,20 +516,6 @@ private:
          return (write_over || !map_.getCell(x, y).isFree());
     }
 
-
-    PrevValue & getPrevValueShortSensors(bool right_side, bool front)
-    {
-        int index =  (right_side) ? 0 : 1 ;
-        index |= (front) ? 0 : 2;
-        return prev_value_short_sensors_[index];
-    }
-
-    PrevValue & getPrevValueLongSensors(bool front)
-    {
-        int index =  (front) ? 0 : 1 ;
-        return prev_value_long_sensors_[index];
-    }
-
     double getPointDistance(double x1, double y1, double x2, double y2)
     {
         return sqrt(pow(x2 - x1, 2) + pow(y2 - y1, 2));
@@ -560,6 +551,11 @@ private:
 
         std::vector<Point> polygon = getSideSensorPoints(sensor_angle, d_front, d_back, sensor_angle_center_offset_front, sensor_angle_center_offset_back);
 
+        updateFreeAreaWithinPolygon(polygon);
+    }
+
+    void updateFreeAreaWithinPolygon(const std::vector<Point> polygon)
+    {
         double smallest_x = polygon[0].x;
         double smallest_y = polygon[0].y;
         double biggest_x = polygon[0].x;
@@ -589,7 +585,6 @@ private:
                 }
             }
         }
-
     }
 
 
@@ -605,7 +600,17 @@ private:
           }
 
           return c;
-        }
+    }
+
+    Point getPointUsingCenterOffset(double x_offset, double y_offset)
+    {
+        Point return_point;
+        double angle = robot_angle_ + getAngleFromPoints(robot_x_pos_, robot_y_pos_, robot_x_pos_ + x_offset, robot_y_pos_ + y_offset);
+        double distance = getPointDistance(robot_x_pos_, robot_y_pos_, robot_x_pos_ + x_offset, robot_y_pos_ + y_offset);
+        return_point.x = robot_x_pos_ + cos(angle)*distance;
+        return_point.y = robot_y_pos_ + sin(angle)*distance;
+        return return_point;
+    }
 };
 
 

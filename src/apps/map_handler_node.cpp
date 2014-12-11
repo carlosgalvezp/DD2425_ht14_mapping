@@ -68,7 +68,7 @@ public:
         ros::Rate loop_rate(PUBLISH_RATE);
         while(ros::ok())
         {
-            if(odo_data_ != nullptr && adc_data_ != nullptr){
+            if(odo_data_ != nullptr  && adc_data_ != nullptr){
 
                 //ros::WallTime temp_time = ros::WallTime::now();
 
