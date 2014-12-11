@@ -98,6 +98,7 @@ void MapLoaderNode::run()
 void MapLoaderNode::rawMapCallback(const nav_msgs::OccupancyGridConstPtr &msg)
 {
     this->raw_map_msg_ = *msg;
+    ROS_WARN("GOT RAW MAP");
     // Fix thin lines
     fixLinesRawMap(this->raw_map_msg_);
 
@@ -109,6 +110,7 @@ void MapLoaderNode::rawMapCallback(const nav_msgs::OccupancyGridConstPtr &msg)
 void MapLoaderNode::thickMapCallback(const nav_msgs::OccupancyGridConstPtr &msg)
 {
     this->thick_map_msg_ = *msg;
+    ROS_WARN("GOT THICK MAP");
 
     // Stop subscribing
     got_map_thick = true;
@@ -118,6 +120,7 @@ void MapLoaderNode::thickMapCallback(const nav_msgs::OccupancyGridConstPtr &msg)
 void MapLoaderNode::costMapCallback(const std_msgs::Int64MultiArrayConstPtr &msg)
 {
     this->cost_msg_ = *msg;
+    ROS_WARN("GOT COST MAP");
 
     // Stop subscribing
     got_map_cost = true;
@@ -129,7 +132,7 @@ void MapLoaderNode::fixLinesRawMap(nav_msgs::OccupancyGrid &map)
     // ** Convert to cv::Mat
     cv::Mat img_raw = cv::Mat(MAP_HEIGHT, MAP_WIDTH, CV_8UC1, &(map.data[0]));
     cv::threshold(img_raw, img_raw, 50, OCC_GRID_SIMPLE_BLOCKED_AREA, CV_THRESH_BINARY);
-    cv::imshow("RAW", img_raw);
+//    cv::imshow("RAW", img_raw);
     // ** Erode and dilate
     int size = 3;
     cv::Mat element = cv::getStructuringElement( cv::MORPH_RECT,cv::Size( 2*size + 1, 2*size+1 ),cv::Point( size, size ) );

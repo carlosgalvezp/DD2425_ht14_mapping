@@ -233,7 +233,7 @@ private:
         double x = -12.5;
         for(int y = -15; y <= 15; y++)
         {
-            map_.setBlockedIfNotBlockedAllready(-13.5, (double) y);
+            map_.setBlockedIfNotBlockedAllready(-13.5 + robot_x_pos_offset_, (double) y + robot_y_pos_offset_);
         }
     }
 
@@ -258,6 +258,7 @@ private:
                 if(is_wall)
                 {
                     updateOccupiedArea(line_dist, 0, laser_angle_center_offset, 1000, laser_dist_from_center);
+                    updateOccupiedArea(line_dist + 1.0, 0, laser_angle_center_offset, 1000, laser_dist_from_center);
 
                 } else if(!is_wall)
                 {

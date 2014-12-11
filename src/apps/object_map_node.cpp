@@ -130,7 +130,7 @@ void computeObjectsGraph(const nav_msgs::OccupancyGrid::ConstPtr &map_msg,
                 const Node &n2 = nodes[j];
 
                 const std::vector<geometry_msgs::Point> &path =
-                        RAS_Utils::occ_grid::bfs_search::getPathFromTo(*map_msg, *map_cost_msg,  n1.getPosition().x_,n1.getPosition().y_,
+                        RAS_Utils::occ_grid::bfs_search::getPathFromTo(*map_msg, *map_cost_msg, n1.getPosition().x_,n1.getPosition().y_,
                                                                                                 n2.getPosition().x_,n2.getPosition().y_);
 
                 double cost  = path.size() != 0? path.size() : 100000;
