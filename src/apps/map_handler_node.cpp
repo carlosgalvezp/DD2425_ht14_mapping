@@ -153,7 +153,7 @@ private:
 
     void adcCallback(const ras_srv_msgs::IRDataConstPtr& msg)
     {
-        ROS_INFO("ADC recieved");
+       // ROS_INFO("ADC recieved");
         new_adc_data_recieved_ = true; // needed for removing duplicate data
         adc_data_ = msg;
     }

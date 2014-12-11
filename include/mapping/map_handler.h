@@ -27,7 +27,7 @@
 
 #define METRIC_CONVERTER    100.0 // To convert meters from odometry to cm in map (might redo this)
 
-#define FREE_AREA_LIMIT 8
+#define FREE_AREA_LIMIT 10
 
 #define SENSOR_READING_PART_DISTANCE_BLOCK_SIZE 0.5 // Value 0.1 means that when working through the linear function "Sensor start to sensor reading", we look 0.1 cm at a time. Lower value leads to more computational costs but better precission in the sense of not missing a "hit node"
 
@@ -56,6 +56,7 @@ public:
         prev_value_short_sensors_(4, PrevValue(-10000, -10000)),
         prev_value_long_sensors_(2, PrevValue(-10000, -10000))
     {
+        fillBehindYourAss();
     }
 
     void update(const geometry_msgs::Pose2D::ConstPtr &odo_data,
@@ -84,6 +85,7 @@ public:
 //        updateOccupiedAreaLongSensor(sd.front_+12, true);
        // updateOccupiedAreaLongSensor(dist_back_large_range, false);
 
+        updateFreeAreaUsingRobotPos();
 
         if(new_adc_recieved){
 
@@ -93,12 +95,12 @@ public:
             updateOccupiedAreaShortSensor(sd.left_back_, false, false);
 
 
-
-
+            /*
             updateFreeAreaShortSensor(sd.right_front_, true, true);
             updateFreeAreaShortSensor(sd.right_back_, true, false);
             updateFreeAreaShortSensor(sd.left_front_, false, true);
             updateFreeAreaShortSensor(sd.left_back_, false, false);
+            */
 
 
             updateFreeAreaBetweenSensors(sd.right_front_, sd.right_back_, true);
@@ -111,7 +113,7 @@ public:
             updateAreaLaser(*las_data, true);
         }
 
-        updateFreeAreaUsingRobotPos();
+        
 
        // updateFreeAreaLongSensor(sd.front_, true);
 
@@ -123,8 +125,8 @@ public:
 
     void objectDetected(const geometry_msgs::Point & object_point)
     {
-        double x_pos = object_point.x * METRIC_CONVERTER;
-        double y_pos = object_point.y * METRIC_CONVERTER;
+        double x_pos = object_point.x * METRIC_CONVERTER + robot_x_pos_offset_;
+        double y_pos = object_point.y * METRIC_CONVERTER + robot_y_pos_offset_;
         Cell& object_cell = map_.getCell(x_pos, y_pos);
         int object_index = map_.getIndexPosition(object_cell.getI(), object_cell.getJ());
         if(objects_collected.find(object_index) == objects_collected.end())
@@ -226,9 +228,18 @@ private:
     std::set<int> objects_collected;
 
 
+    void fillBehindYourAss()
+    {
+        double x = -12.5;
+        for(int y = -15; y <= 15; y++)
+        {
+            map_.setBlockedIfNotBlockedAllready(-13.5, (double) y);
+        }
+    }
+
     void updateAreaLaser(const ras_srv_msgs::LaserScanner & laser_scanner, bool paint_wall)
     {
-        for(int i = 0; i < laser_scanner.scan.size(); i += 15)
+        for(int i = 0; i < laser_scanner.scan.size(); i++)
         {
             const ras_srv_msgs::LaserLine & line = laser_scanner.scan[i];
             double from_x = line.from_.x * METRIC_CONVERTER + robot_x_pos_offset_;

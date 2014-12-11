@@ -8,13 +8,13 @@
 #define SIMPLE_FREE_AREA    0
 #define SIMPLE_BLOCKED_AREA 100
 
-#define THICK_WALL_COUNTER_LIMIT 5
+#define THICK_WALL_COUNTER_LIMIT 7
 #define THICK_WALL_SIZE 11
 
-#define COST_MAP_LIMIT                  5
-#define COST_MAP_DEFAULT                1000
-#define COST_MAP_EXPO_STATIC_INCREASER  10.0    // Lowest possible value to be used with expo. Makes the cost map more distinct, less changing of path
-#define COST_MAP_EXPO_VALUE             3     // The expo value for cost calculation
+#define COST_MAP_LIMIT                  10
+#define COST_MAP_DEFAULT                5000
+#define COST_MAP_EXPO_STATIC_INCREASER  5.0    // Lowest possible value to be used with expo. Makes the cost map more distinct, less changing of path
+#define COST_MAP_EXPO_VALUE             1.5     // The expo value for cost calculation
 
 class Map {
 public:
