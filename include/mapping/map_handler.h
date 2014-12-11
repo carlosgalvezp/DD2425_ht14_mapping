@@ -90,7 +90,7 @@ public:
        // updateOccupiedAreaLongSensor(dist_back_large_range, false);
 
         updateFreeAreaUsingRobotPos();
-        updateFreeInFrontOfRobot(adc_data->front);
+        updateFreeInFrontOfRobot(sd.front_);
 
 
         if(new_adc_recieved){
