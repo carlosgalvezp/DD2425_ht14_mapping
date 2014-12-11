@@ -106,6 +106,17 @@ public:
                     msg_cost.data = (&mapHandler.getCostMap())[0];
                     map_pub_cost_.publish(msg_cost);
 
+/*
+                    for(int j = -10; j <= 10; j++)
+                    {
+                        long cost = mapHandler.getCostMap()[500 + (500 + j) * MAP_HEIGHT];
+                        ROS_INFO("X:0  Y: %d Cost: %lu",j, cost);
+                        cost = mapHandler.getCostMap()[520 + (500 + j) * MAP_HEIGHT];
+                        ROS_INFO("X:20 Y: %d Cost: %lu",j, cost);
+
+                    }
+                    */
+
                     if(++publish_bag_counter_ > PUBLISH_RATE)
                     {
                         // ** Publish to the recording every second instead, since the bag weighs A LOT

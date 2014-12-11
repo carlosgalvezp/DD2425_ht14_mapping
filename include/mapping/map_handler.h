@@ -402,7 +402,7 @@ private:
     {
         double front_y_limit = 12.0;
         double front_x_base = 8.0;
-        double front_x_limit = front_x_base + std::min(10.0, front_dist);
+        double front_x_limit = front_x_base + std::min(15.0, front_dist);
         std::vector<Point> polygon;
         polygon.push_back(getPointUsingCenterOffset(front_x_base, front_y_limit));
         polygon.push_back(getPointUsingCenterOffset(front_x_limit, front_y_limit));
