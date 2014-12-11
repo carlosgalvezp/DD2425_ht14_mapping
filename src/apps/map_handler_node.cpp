@@ -24,8 +24,8 @@
 #define PUBLISH_RATE    10
 
 // ** Map specific constants
-#define MAP_HEIGHT      1000    // Corresponds to amount of cells
-#define MAP_WIDTH       1000    // Corresponds to amount of cells
+#define MAP_HEIGHT      1200    // Corresponds to amount of cells
+#define MAP_WIDTH       1200    // Corresponds to amount of cells
 #define MAP_CELL_SIZE   1.0     // Width and Height in // Corresponds to amount of cells CM per Cell
 
 #define TIME_SAVE_MAP   10.0    // [s] After this time interval passes, we save the map. E.g.: save map every 30 seconds
@@ -153,7 +153,6 @@ private:
 
     void adcCallback(const ras_srv_msgs::IRDataConstPtr& msg)
     {
-       // ROS_INFO("ADC recieved");
         new_adc_data_recieved_ = true; // needed for removing duplicate data
         adc_data_ = msg;
     }
