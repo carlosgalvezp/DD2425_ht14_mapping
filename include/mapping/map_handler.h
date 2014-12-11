@@ -251,6 +251,7 @@ private:
                 if(is_wall)
                 {
                     updateOccupiedArea(line_dist, 0, laser_angle_center_offset, 1000, laser_dist_from_center);
+                    updateOccupiedArea(line_dist + 1.0, 0, laser_angle_center_offset, 1000, laser_dist_from_center);
 
                 } else if(!is_wall)
                 {

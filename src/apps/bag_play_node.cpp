@@ -10,7 +10,7 @@ int main(int argc, char **argv) {
     int tStart;
     file >> tStart;
     std::stringstream ss;
-    ss << "rosbag play -d 5 -s "<< tStart<<" dd2425_ht14_G6_phase1_map.bag";
+    ss << "rosbag play -q -d 2 -s "<< tStart<<" dd2425_ht14_G6_phase1_map.bag";
 
     system(ss.str().c_str());
 
