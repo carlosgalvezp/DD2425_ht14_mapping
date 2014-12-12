@@ -130,7 +130,7 @@ void MapLoaderNode::costMapCallback(const std_msgs::Int64MultiArrayConstPtr &msg
 void MapLoaderNode::fixLinesRawMap(nav_msgs::OccupancyGrid &map)
 {
     // ** Convert to cv::Mat
-    cv::Mat img_raw = cv::Mat(MAP_HEIGHT, MAP_WIDTH, CV_8UC1, &(map.data[0]));
+    cv::Mat img_raw = cv::Mat(map.info.height, map.info.width, CV_8UC1, &(map.data[0]));
     cv::threshold(img_raw, img_raw, 50, OCC_GRID_SIMPLE_BLOCKED_AREA, CV_THRESH_BINARY);
 //    cv::imshow("RAW", img_raw);
     // ** Erode and dilate
